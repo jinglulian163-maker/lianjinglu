@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#34284b" />
+    <meta name="description" content="Soft Hours，一间收藏友谊回忆的互动小房间。" />
+    <title>Soft Hours · 我们的回忆小屋</title>
+    <link rel="preload" as="image" href="./assets/room.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient--one" aria-hidden="true"></div>
+    <div class="ambient ambient--two" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <span class="topbar__mark">S<span class="topbar__star">✳</span>H</span>
+      <span class="topbar__caption">一间收藏我们回忆的小屋</span>
+      <button class="topbar__reset" type="button" id="resetView" aria-label="重置房间视角">回到原位 <span aria-hidden="true">↗</span></button>
+    </header>
+
+    <main>
+      <section class="room-section" id="roomSection" aria-label="Soft Hours 互动房间">
+        <div class="room-sticky">
+          <div class="hero-copy" id="heroCopy">
+            <span class="eyebrow"><span class="eyebrow__line"></span> A little place to keep us close <span class="eyebrow__line"></span></span>
+            <img class="hero-copy__title" src="./assets/soft-hours-title.png" alt="Soft Hours" />
+            <p>有些时光，适合住进一间小屋里。</p>
+          </div>
+
+          <div class="room-wrap" id="roomWrap">
+            <div class="room-aura" aria-hidden="true"></div>
+            <div class="room-stage" id="roomStage" aria-label="拖动探索房间；点击发光物品打开回忆">
+              <img class="room-stage__art" src="./assets/room.png" alt="暖黄夕阳照进无人小房间，房内有床、衣柜、唱片机与落地灯" draggable="false" />
+              <div class="night-wash" aria-hidden="true"></div>
+              <div class="night-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+              <button class="hotspot hotspot--wardrobe" type="button" data-open="wardrobe" aria-label="打开衣柜相册"><span class="hotspot__dot"></span><span class="hotspot__label">照片衣柜</span></button>
+              <button class="hotspot hotspot--record" type="button" data-open="record" aria-label="打开唱片机录音"><span class="hotspot__dot"></span><span class="hotspot__label">唱片机</span></button>
+              <button class="hotspot hotspot--lamp" type="button" id="lampButton" aria-label="切换白天和夜晚"><span class="hotspot__dot"></span><span class="hotspot__label">点亮这盏灯</span></button>
+              <button class="hotspot hotspot--board" type="button" data-open="board" aria-label="打开回忆公告板"><span class="hotspot__dot"></span><span class="hotspot__label">回忆公告板</span></button>
+            </div>
+          </div>
+
+          <div class="scene-note" id="sceneNote"><span class="scene-note__sparkle">✳</span> 按住拖动，看看房间里藏了什么 <span class="scene-note__sparkle">✳</span></div>
+          <div class="scroll-cue" id="scrollCue"><span>向下滚动，走近小屋</span><span class="scroll-cue__mouse" aria-hidden="true"><i></i></span></div>
+          <div class="scene-bottom"><span>SOFT HOURS / 01</span><span>把鼠标移到发光的物品上</span><span id="timeLabel">GOLDEN HOUR</span></div>
+        </div>
+      </section>
+
+      <section class="afterword" aria-label="关于这间小屋">
+        <span class="afterword__kicker">THE ROOM IS YOURS TO FILL</span>
+        <h2>每件小东西，<br /><em>都会记得一点什么。</em></h2>
+        <p>打开衣柜看看照片，听听唱片机里的声音。我们的回忆会一点点住进这间房间。</p>
+        <button class="afterword__button" type="button" id="backToRoom">再回房间看看 <span aria-hidden="true">↑</span></button>
+        <div class="afterword__ornament" aria-hidden="true">✳</div>
+      </section>
+    </main>
+
+    <div class="modal-shell" id="modalShell" hidden>
+      <div class="modal-scrim" data-close="true"></div>
+      <section class="memory-panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+        <button class="memory-panel__close" type="button" id="closePanel" aria-label="关闭弹窗">×</button>
+        <span class="memory-panel__number" id="panelNumber"></span>
+        <h2 id="panelTitle"></h2>
+        <p class="memory-panel__intro" id="panelIntro"></p>
+        <div id="panelBody"></div>
+      </section>
+    </div>
+  </body>
+</html>
