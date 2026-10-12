@@ -30,3 +30,20 @@ html,body{height:100%;overflow:hidden;background:#f3e3d1}
 .scene-loader{top:48%;background:#fff7eddd;color:#796477}.scene-loader[hidden]{display:none}.scene-loader button{margin-left:12px;border:0;background:#8b738e;color:white;border-radius:20px;padding:7px 12px;pointer-events:auto}
 @media(max-width:600px){.hero-copy{top:76px}.hero-copy h1{font-size:20vw}.scene-area{inset:190px 0 170px}.zoom-controls{right:50%;transform:translateX(50%);bottom:117px}.scene-actions{bottom:70px}.scene-guide{bottom:36px}.topbar__caption{display:none}}
 @media(max-height:620px) and (min-width:601px){.hero-copy{top:28px}.hero-copy h1{font-size:60px}.hero-copy .eyebrow,.hero-copy__sub{display:none}.scene-area{inset:90px 0 85px}.scene-actions,.zoom-controls{bottom:50px}.scene-guide{bottom:22px}.scene-foot{bottom:5px}}
+
+/* Unframed, full-viewport room with floating keepsake windows. */
+.scene-area{position:fixed;inset:0;overflow:visible}
+.topbar__mark{letter-spacing:.025em}.topbar__mark span{font-family:'Londrina Solid',sans-serif;font-size:.65em;margin:0 3px;vertical-align:2px}
+.modal-shell{align-items:center;justify-content:center;padding:26px 18px}
+.modal-scrim{background:rgba(103,83,101,.22);backdrop-filter:blur(3px)}
+.memory-panel{width:min(480px,100%);height:auto;max-height:min(78svh,650px);overflow-y:auto;overscroll-behavior:contain;padding:42px 34px 30px;background:linear-gradient(#fff9eeed,#fff7e9ed),url('./assets/painted-background.png') center/cover;color:#776176;border:2px solid #c6afa6;border-radius:21px 15px 24px 13px / 14px 24px 17px 22px;box-shadow:0 16px 48px #6c52632b,inset 0 0 0 5px #fff9ed,inset 0 0 0 7px #ddcaba70;animation:keepsakeIn .25s ease-out;scrollbar-width:thin;scrollbar-color:#c6adbc transparent}
+.memory-panel:before{content:'✳';position:absolute;top:14px;left:25px;color:#d8ae77;font-size:19px;transform:rotate(-12deg)}
+.memory-panel__close{top:15px;right:16px;width:32px;height:32px;font-size:23px;border-color:#bd9fae;border-radius:46% 53% 45% 51%;color:#94788f;background:#f7e8df}
+.memory-panel__close:hover{background:#eed8d5;transform:rotate(8deg)}
+.memory-panel__number{font-size:9px;letter-spacing:.18em;margin:8px 0 16px;color:#ac8794}.memory-panel h2{font-size:28px;letter-spacing:.1em;margin-bottom:10px}.memory-panel__intro{font-size:12px;line-height:1.9;margin-bottom:20px}
+.modal-section-title{font-size:9px}.photo-grid{gap:18px;margin:20px 3px 25px}.photo-slot{aspect-ratio:1.08;border-width:7px 7px 18px;border-radius:3px 6px 4px 2px;background:linear-gradient(#e8d5e0aa,#d0c8ddaa),url('./assets/painted-background.png') center/cover;box-shadow:2px 5px 12px #8d75812a}.photo-slot:nth-child(2){background:linear-gradient(#f2dcbba0,#ecd0cca0),url('./assets/painted-background.png') center/cover}.photo-slot__placeholder{font-size:26px}.photo-slot__placeholder small{font-size:10px}
+.upload-label{padding:10px 17px;font-size:12px;background:#a28b9f;border:1px solid #8f768b;border-radius:15px 19px 14px 18px}.upload-label:hover{background:#90778e}.small-note{font-size:10px;margin-top:13px}.record-art{height:175px;border-radius:12px 18px 13px 15px;background:linear-gradient(#edd2bbaa,#d3c6d5aa),url('./assets/painted-background.png') center/cover;margin-bottom:20px}.record-disc{width:130px;height:130px}.record-tonearm{right:45px}.empty-state{font-size:12px;padding:12px 16px}.board-note{padding:20px;min-height:140px;margin:20px 6px 25px}.board-list{margin-top:18px;gap:3px}
+@keyframes keepsakeIn{from{opacity:0;transform:translateY(10px) scale(.97) rotate(-1deg)}to{opacity:1;transform:none}}
+@media(max-width:600px){.scene-area{inset:0}.memory-panel{width:min(420px,100%);max-height:78svh;padding:40px 25px 25px}.memory-panel h2{font-size:25px}}
+@media(max-height:620px){.memory-panel{max-height:88svh;padding-top:38px}.scene-area{inset:0}}
+@media(prefers-reduced-motion:reduce){.memory-panel{animation:none}}

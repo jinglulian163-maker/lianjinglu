@@ -78,6 +78,7 @@ function openPanel(name) {
   if (name === 'record') renderRecord();
   if (name === 'board') renderBoard();
   modalShell.hidden = false; document.body.style.overflow = 'hidden';
+  document.querySelector('main').inert = true;
   document.getElementById('closePanel').focus();
 }
 function closePanel() {
@@ -86,6 +87,7 @@ function closePanel() {
   if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = null; }
   photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
   modalShell.hidden = true; panelBody.replaceChildren(); document.body.style.overflow = '';
+  document.querySelector('main').inert = false;
   currentPanel = null; if (lastTrigger?.focus) lastTrigger.focus();
 }
 window.addEventListener('soft-hours:open', event => openPanel(event.detail));
@@ -95,4 +97,11 @@ document.querySelectorAll('[data-action]').forEach(button => button.addEventList
 }));
 document.getElementById('closePanel').addEventListener('click', closePanel);
 modalShell.addEventListener('click', event => { if (event.target.matches('[data-close]')) closePanel(); });
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closePanel(); });
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closePanel();
+  if (event.key !== 'Tab' || !currentPanel) return;
+  const items = [...modalShell.querySelectorAll('button, input, audio[controls], [tabindex="0"]')].filter(el => !el.hidden && !el.disabled);
+  const first = items[0], last = items[items.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+});
