@@ -10,3 +10,23 @@
 @media(max-width:800px){.topbar__caption{display:none}.hero-copy{top:12vh;width:90vw}.hero-copy h1{font-size:clamp(68px,15vw,108px)}.hero-copy__sub{letter-spacing:.1em}.scene-foot span:nth-child(2){display:none}}
 @media(max-width:520px){.room-section{height:145svh;min-height:760px}.room-sticky{min-height:530px}.topbar{height:62px;padding:0 18px}.topbar__reset{padding:8px 12px}.hero-copy{top:11vh}.hero-copy h1{font-size:17vw}.eyebrow{font-size:8px;letter-spacing:.12em}.hero-copy__sub{font-size:10px;margin-top:10px}.scene-actions{bottom:120px;gap:6px}.scene-actions button{font-size:10px;padding:7px 10px}.scene-guide{bottom:66px;font-size:10px;letter-spacing:.04em;padding:10px 12px}.scene-foot{left:18px;right:18px;bottom:24px;font-size:8px}.memory-panel{padding:72px 25px 35px}.memory-panel__close{top:18px;right:18px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Single-screen painted room: typography is independent of camera zoom. */
+html,body{height:100%;overflow:hidden;background:#f3e3d1}
+.room-section{height:100svh;min-height:0}.room-sticky{position:relative;height:100svh;min-height:0;background:#f3e3d1 url('./assets/painted-background.png') center/cover no-repeat}
+.room-sticky:after{display:none}.backdrop-glow{display:none}
+.hero-copy{position:fixed;top:70px;width:90vw;transform:translateX(-50%);opacity:1;will-change:auto}
+.hero-copy h1{font-size:clamp(68px,7.6vw,110px);-webkit-text-stroke:.7px #aa8290}
+.hero-copy .eyebrow{color:#8f727c;font-size:9px;margin-bottom:8px}.hero-copy__sub{color:#8b727b;font-size:11px;margin-top:12px}
+.topbar{height:62px}.topbar__mark{color:#927c96}.topbar__caption{color:#866f7d}
+.topbar__reset{background:rgba(255,249,235,.75);border-color:#b8a0ac;color:#755e78;backdrop-filter:blur(8px)}.topbar__reset:hover{background:#fff5e5}
+.scene-area{inset:190px 0 113px}.scene-area canvas:focus-visible{outline:2px solid #aa8d9e;outline-offset:-4px}
+.night-dim{display:none}.is-night .room-sticky{background:#f3e3d1 url('./assets/painted-background.png') center/cover no-repeat}
+.scene-actions{bottom:76px}.scene-actions button{background:rgba(255,247,235,.82);color:#796477;border-color:#c3afba}.scene-actions button:hover{background:#f6e4d4}
+.scene-guide{bottom:36px;background:transparent;border:0;color:#8b7686;padding:5px 0;backdrop-filter:none;font-size:10px}.guide-symbol{color:#a18b9f}
+.scene-foot{bottom:14px;color:#998595;font-size:8px}.scene-foot span:nth-child(2){display:none}
+.zoom-controls{position:absolute;z-index:8;right:clamp(18px,4vw,66px);bottom:76px;display:flex;align-items:center;gap:8px;background:#fff7ebd9;border:1px solid #c3afba;border-radius:30px;padding:4px;color:#796477}
+.zoom-controls button{border:0;background:transparent;color:inherit;width:30px;height:28px;border-radius:50%;font-size:20px}.zoom-controls button:hover{background:#eddfdf}.zoom-controls button:disabled{opacity:.3;cursor:default}.zoom-controls output{min-width:38px;font:11px Arial,sans-serif;text-align:center}
+.scene-loader{top:48%;background:#fff7eddd;color:#796477}.scene-loader[hidden]{display:none}.scene-loader button{margin-left:12px;border:0;background:#8b738e;color:white;border-radius:20px;padding:7px 12px;pointer-events:auto}
+@media(max-width:600px){.hero-copy{top:76px}.hero-copy h1{font-size:20vw}.scene-area{inset:190px 0 170px}.zoom-controls{right:50%;transform:translateX(50%);bottom:117px}.scene-actions{bottom:70px}.scene-guide{bottom:36px}.topbar__caption{display:none}}
+@media(max-height:620px) and (min-width:601px){.hero-copy{top:28px}.hero-copy h1{font-size:60px}.hero-copy .eyebrow,.hero-copy__sub{display:none}.scene-area{inset:90px 0 85px}.scene-actions,.zoom-controls{bottom:50px}.scene-guide{bottom:22px}.scene-foot{bottom:5px}}

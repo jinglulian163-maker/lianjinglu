@@ -10,23 +10,14 @@ let lastTrigger = null;
 let localAudioUrl = null;
 let photoUrls = [];
 
-function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-function updateScroll() {
-  const travel = Math.max(1, roomSection.offsetHeight - window.innerHeight);
-  const progress = clamp(window.scrollY / travel, 0, 1);
-  const exit = clamp(progress * 1.8, 0, 1);
-  heroCopy.style.transform = `translate(-50%, ${-175 * exit}px)`;
-  heroCopy.style.opacity = String(1 - exit);
-}
-window.addEventListener('scroll', updateScroll, { passive: true });
-window.addEventListener('resize', updateScroll);
-updateScroll();
+// The title stays fixed. Wheel input belongs to the three-dimensional room.
 
 let isNight = false;
 try { isNight = localStorage.getItem('soft-hours-night') === 'true'; } catch (_) {}
 function applyNight() {
   document.body.classList.toggle('is-night', isNight);
   document.getElementById('timeLabel').textContent = isNight ? 'AFTER DARK' : 'GOLDEN HOUR';
+  window.dispatchEvent(new CustomEvent('soft-hours:night', { detail: isNight }));
 }
 applyNight();
 window.addEventListener('soft-hours:lamp', () => {
