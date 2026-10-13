@@ -23,4 +23,4 @@ Run the Sites dependency installer. For local preview, `.dev.vars` may contain B
 
 `node scripts/run-framework.mjs build` creates the worker and client assets. Publish with Sites source workflow and deployment archive; migrations are carried in dist/.openai/drizzle.
 
-The board polls every 4 seconds while open and checks unread state every 15 seconds while closed. Drafts are device-local; failed submissions are retained for manual retry. Photos and audio remain the earlier browser-only prototypes.
+The board polls every 4 seconds while open and checks unread state every 15 seconds while closed. Drafts are device-local; failed submissions are retained for manual retry. Photos use authenticated R2 original-file storage and D1 metadata; uploads are limited to 12 MB each and accept JPG, PNG and WebP. Removal is recoverable. Audio remains the earlier browser-only prototype.

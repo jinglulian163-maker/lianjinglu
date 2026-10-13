@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 export const dynamic = 'force-dynamic';
 const reply = (data: unknown, status=200) => Response.json(data, {status,headers:{'Cache-Control':'private, no-store','Vary':'Cookie'}});
 const fail = (message: string,status=400) => { throw {message,status}; };
-async function identity(request: Request) {
+export async function identity(request: Request) {
   const id=request.headers.get('oai-authenticated-user-id');
   if(!id) fail('请先登录，再打开你们的公告板。',401);
   const db=env.DB!;

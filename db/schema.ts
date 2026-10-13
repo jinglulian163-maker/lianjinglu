@@ -2,6 +2,7 @@
 // Add Drizzle tables here when the site actually needs a database.
 // See examples/d1/db/schema.ts for an opt-in example.
 import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+export const photos = sqliteTable('photos', {id:text('id').primaryKey(),owner:text('owner').notNull(),name:text('name').notNull(),mime:text('mime').notNull(),size:integer('size').notNull(),digest:text('digest').notNull(),created:integer('created').notNull(),ready:integer('ready').notNull().default(0),deleted:integer('deleted').notNull().default(0)});
 export const members = sqliteTable('members', { id: text('id').primaryKey(), slot: text('slot').notNull().unique() });
 export const notes = sqliteTable('notes', {
   id: text('id').primaryKey(), author: text('author').notNull(), body: text('body').notNull(),

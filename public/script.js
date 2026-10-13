@@ -1,3 +1,4 @@
+import { mountPhotos, unmountPhotos } from './photos.js';
 import { mountBoard, unmountBoard } from './board.js';
 const roomSection = document.getElementById('roomSection');
 const heroCopy = document.getElementById('heroCopy');
@@ -36,22 +37,7 @@ const panels = {
   record: { number: '02 / THE RECORD PLAYER', title: '唱片机', intro: '一首歌，一段声音，就能把那一天带回来。' },
   board: { number: '03 / THE MEMORY BOARD', title: '回忆公告板', intro: '有些日子值得被钉在墙上，偶尔抬头再看一眼。' }
 };
-function renderWardrobe() {
-  panelBody.innerHTML = `<p class="modal-section-title">THE PHOTO DRAWER</p><div class="photo-grid" id="photoGrid"><div class="photo-slot"><span class="photo-slot__placeholder">✳<small>等待第一张照片</small></span></div><div class="photo-slot"><span class="photo-slot__placeholder">✳<small>和下一段回忆</small></span></div></div><label class="upload-label">试着放入照片 <span aria-hidden="true">↗</span><input type="file" id="photoInput" accept="image/*" multiple /></label><p class="small-note">原型预览：选择的照片仅在当前页面展示，不会上传或保存。</p>`;
-  document.getElementById('photoInput').addEventListener('change', event => {
-    photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
-    const grid = document.getElementById('photoGrid');
-    const files = [...event.target.files].filter(file => file.type.startsWith('image/')).slice(0, 12);
-    if (!files.length) return;
-    grid.replaceChildren();
-    files.forEach(file => {
-      const url = URL.createObjectURL(file); photoUrls.push(url);
-      const frame = document.createElement('div'); frame.className = 'photo-slot';
-      const image = document.createElement('img'); image.src = url; image.alt = file.name;
-      frame.append(image); grid.append(frame);
-    });
-  });
-}
+function renderWardrobe() { mountPhotos(panelBody); }
 function renderRecord() {
   panelBody.innerHTML = `<div class="record-art" id="recordArt" aria-hidden="true"><div class="record-disc"></div><div class="record-tonearm"></div></div><p class="modal-section-title">SOUNDS WE KEPT</p><div class="empty-state" id="audioEmpty">这里还没有放入录音。你可以先选择一段音频，试试唱片机的播放效果。</div><div class="record-controls"><audio id="audioPlayer" controls hidden></audio></div><label class="upload-label">选择一段录音 <span aria-hidden="true">♪</span><input type="file" id="audioInput" accept="audio/*" /></label><p class="small-note" id="audioFileNote">原型预览：音频仅在当前页面播放，不会上传或保存。</p>`;
   const player = document.getElementById('audioPlayer');
@@ -70,7 +56,7 @@ function renderRecord() {
 function renderBoard() { mountBoard(panelBody); }
 function openPanel(name) {
   const data = panels[name]; if (!data) return;
-  unmountBoard();
+  unmountBoard(); unmountPhotos();
   currentPanel = name;
   modalShell.classList.toggle('is-board', name === 'board');
   lastTrigger = document.activeElement;
@@ -84,7 +70,7 @@ function openPanel(name) {
 }
 function closePanel() {
   if (!currentPanel) return;
-  unmountBoard();
+  unmountBoard(); unmountPhotos();
   document.getElementById('audioPlayer')?.pause();
   if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = null; }
   photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
