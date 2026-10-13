@@ -26,7 +26,8 @@ async function startRoom() {
   controls.enablePan = false; controls.enableZoom = true;
   controls.minZoom = .65; controls.maxZoom = 2.3; controls.zoomSpeed = .7;
   controls.rotateSpeed = .5;
-  controls.minPolarAngle = .86; controls.maxPolarAngle = 1.27;
+  controls.minPolarAngle = 1.02; controls.maxPolarAngle = 1.22;
+  controls.minAzimuthAngle = .38; controls.maxAzimuthAngle = 1.12;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
   controls.update();
@@ -62,6 +63,7 @@ async function startRoom() {
       if (event.key === 'ArrowUp') sphere.phi -= .08;
       if (event.key === 'ArrowDown') sphere.phi += .08;
       sphere.phi = THREE.MathUtils.clamp(sphere.phi, controls.minPolarAngle, controls.maxPolarAngle);
+      sphere.theta = THREE.MathUtils.clamp(sphere.theta, controls.minAzimuthAngle, controls.maxAzimuthAngle);
       camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(sphere)); controls.update();
     }
   });
@@ -69,14 +71,38 @@ async function startRoom() {
     loader.textContent = event.total ? `正在打开小屋… ${Math.round(event.loaded / event.total * 100)}%` : '正在打开小屋…';
   });
   const room = gltf.scene; const meshes = []; const materials = [];
+  room.scale.y = 1 / .92;
+  const nightUniform = { value: document.body.classList.contains('is-night') ? 1 : 0 };
+  let nightTarget = nightUniform.value;
   room.traverse(object => {
     if (!object.isMesh) return;
     object.material.dispose();
     object.material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    object.material.onBeforeCompile = shader => {
+      shader.uniforms.uNight = nightUniform;
+      shader.vertexShader = 'varying vec3 vRoomPosition;\n' + shader.vertexShader;
+      shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvRoomPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      shader.fragmentShader = 'uniform float uNight; varying vec3 vRoomPosition;\n' + shader.fragmentShader;
+      shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `
+        float distanceFromWindow = max(0.0, vRoomPosition.x + 5.3);
+        float windowY = vRoomPosition.y + distanceFromWindow * .52;
+        float windowZ = vRoomPosition.z - distanceFromWindow * .18;
+        float opening = smoothstep(1.5,1.75,windowY) * (1.0-smoothstep(3.8,4.1,windowY));
+        opening *= 1.0-smoothstep(2.6,3.15,abs(windowZ));
+        float mullions = smoothstep(.03,.14,abs(sin(windowZ * 1.904)));
+        mullions *= smoothstep(.035,.15,abs(windowY-2.91));
+        float moon = opening * mix(.35,1.0,mullions) * exp(-distanceFromWindow*.16);
+        vec3 nightColor = outgoingLight * vec3(.24,.30,.49) + vec3(.12,.20,.32) * moon;
+        outgoingLight = mix(outgoingLight, nightColor, uNight);
+        #include <opaque_fragment>
+      `);
+    };
     materials.push(object.material); meshes.push(object);
   });
   scene.add(room);
-  function nightMode(night) { materials.forEach(material => material.color.setScalar(night ? .34 : 1)); }
+  const windowGlow = new THREE.Mesh(new THREE.PlaneGeometry(6.35,2.45),new THREE.MeshBasicMaterial({color:0x92afd9,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));
+  windowGlow.rotation.y = Math.PI/2; windowGlow.position.set(-5.48,2.58,.05); room.add(windowGlow);
+  function nightMode(night) { nightTarget = night ? 1 : 0; }
   nightMode(document.body.classList.contains('is-night'));
   window.addEventListener('soft-hours:night', event => nightMode(event.detail));
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
@@ -131,7 +157,14 @@ async function startRoom() {
     camera.updateProjectionMatrix(); renderer.setSize(width, height, false);
   }
   new ResizeObserver(resize).observe(area); resize(); zoomStatus();
-  renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+  let previousTime = performance.now();
+  renderer.setAnimationLoop(() => {
+    const now = performance.now(), delta = Math.min((now-previousTime)/1000,.1); previousTime=now;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
+    windowGlow.material.opacity = nightUniform.value * .36;
+    controls.update(); renderer.render(scene, camera);
+  });
   loader.hidden = true;
   canvas.dataset.modelReady = 'true';
 }
