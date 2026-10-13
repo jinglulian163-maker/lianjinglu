@@ -16,30 +16,43 @@ async function startRoom() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = false;
-  const camera = new THREE.OrthographicCamera(-9, 9, 6, -6, .1, 100);
-  const target = new THREE.Vector3(0, 1.68, 0);
-  const initialPosition = new THREE.Vector3(14, 13.3, 18);
+  // True two-point perspective: level camera, vertical lens shift, two finite horizontal vanishing points.
+  const camera = new THREE.PerspectiveCamera(34, 1, .1, 150);
+  const target = new THREE.Vector3(0, 8.5, 0);
+  const initialPosition = new THREE.Vector3(16, 8.5, 20);
+  const initialDistance = initialPosition.distanceTo(target);
+  let viewHeight = 15.6, compositionCenter = .56;
+  function updateProjection() {
+    camera.updateProjectionMatrix();
+    const distance = camera.position.distanceTo(target);
+    camera.projectionMatrix.elements[9] = -2 * (target.y - 1.68) / viewHeight * initialDistance / distance + (compositionCenter * 2 - 1);
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+  }
   camera.position.copy(initialPosition); camera.lookAt(target);
   const controls = new OrbitControls(camera, canvas);
   controls.target.copy(target);
   controls.enableDamping = true; controls.dampingFactor = .1;
   controls.enablePan = false; controls.enableZoom = true;
   controls.minZoom = .65; controls.maxZoom = 2.3; controls.zoomSpeed = .7;
+  controls.minDistance = initialDistance / 2.3; controls.maxDistance = initialDistance / .65;
   controls.rotateSpeed = .5;
-  controls.minPolarAngle = 1.02; controls.maxPolarAngle = 1.22;
+  controls.minPolarAngle = Math.PI / 2; controls.maxPolarAngle = Math.PI / 2;
   controls.minAzimuthAngle = .38; controls.maxAzimuthAngle = 1.12;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
   controls.update();
   const zoomIn = document.getElementById('zoomIn'), zoomOut = document.getElementById('zoomOut');
   function zoomStatus() {
-    zoomLevel.textContent = `${Math.round(camera.zoom * 100)}%`;
-    zoomIn.disabled = camera.zoom >= controls.maxZoom - .001;
-    zoomOut.disabled = camera.zoom <= controls.minZoom + .001;
+    const zoom = initialDistance / camera.position.distanceTo(target);
+    zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+    zoomIn.disabled = zoom >= controls.maxZoom - .001;
+    zoomOut.disabled = zoom <= controls.minZoom + .001;
+    updateProjection();
   }
   function zoomBy(factor) {
-    camera.zoom = THREE.MathUtils.clamp(camera.zoom * factor, controls.minZoom, controls.maxZoom);
-    camera.updateProjectionMatrix(); zoomStatus();
+    const offset = camera.position.clone().sub(target);
+    offset.setLength(THREE.MathUtils.clamp(offset.length() / factor, controls.minDistance, controls.maxDistance));
+    camera.position.copy(target).add(offset); controls.update(); zoomStatus();
   }
   controls.addEventListener('change', zoomStatus);
   zoomIn.addEventListener('click', () => zoomBy(1.15));
@@ -149,12 +162,12 @@ async function startRoom() {
     const width = area.clientWidth, height = area.clientHeight;
     if (!width || !height) return;
     const aspect = width / height;
-    const viewHeight = Math.max(15.6, 17.2 / aspect);
+    viewHeight = Math.max(15.6, 17.2 / aspect);
     // Compose within a full-screen canvas; zoom never meets an interior crop box.
-    const center = width < 600 ? .55 : .56;
-    camera.left = -viewHeight * aspect / 2; camera.right = viewHeight * aspect / 2;
-    camera.top = viewHeight * center; camera.bottom = -viewHeight * (1 - center);
-    camera.updateProjectionMatrix(); renderer.setSize(width, height, false);
+    compositionCenter = width < 600 ? .55 : .56;
+    camera.aspect = aspect;
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(viewHeight / (2 * initialDistance)));
+    updateProjection(); renderer.setSize(width, height, false);
   }
   new ResizeObserver(resize).observe(area); resize(); zoomStatus();
   let previousTime = performance.now();
