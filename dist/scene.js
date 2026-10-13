@@ -22,10 +22,13 @@ async function startRoom() {
   const initialPosition = new THREE.Vector3(16, 8.5, 20);
   const initialDistance = initialPosition.distanceTo(target);
   let viewHeight = 15.6, compositionCenter = .56;
+  const roomFocus = new THREE.Vector3(0, 1.68, 0);
+  const viewFocus = new THREE.Vector3();
   function updateProjection() {
     camera.updateProjectionMatrix();
-    const distance = camera.position.distanceTo(target);
-    camera.projectionMatrix.elements[9] = -2 * (target.y - 1.68) / viewHeight * initialDistance / distance + (compositionCenter * 2 - 1);
+    camera.updateMatrixWorld();
+    viewFocus.copy(roomFocus).applyMatrix4(camera.matrixWorldInverse);
+    camera.projectionMatrix.elements[9] = camera.projectionMatrix.elements[5] * viewFocus.y / -viewFocus.z + (compositionCenter * 2 - 1);
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   }
   camera.position.copy(initialPosition); camera.lookAt(target);
@@ -36,8 +39,8 @@ async function startRoom() {
   controls.minZoom = .65; controls.maxZoom = 2.3; controls.zoomSpeed = .7;
   controls.minDistance = initialDistance / 2.3; controls.maxDistance = initialDistance / .65;
   controls.rotateSpeed = .5;
-  controls.minPolarAngle = Math.PI / 2; controls.maxPolarAngle = Math.PI / 2;
-  controls.minAzimuthAngle = .38; controls.maxAzimuthAngle = 1.12;
+  controls.minPolarAngle = .35; controls.maxPolarAngle = 1.68;
+  controls.minAzimuthAngle = -Infinity; controls.maxAzimuthAngle = Infinity;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
   controls.update();
