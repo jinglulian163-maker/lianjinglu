@@ -1,3 +1,4 @@
+import { mountBoard, unmountBoard } from './board.js';
 const roomSection = document.getElementById('roomSection');
 const heroCopy = document.getElementById('heroCopy');
 const modalShell = document.getElementById('modalShell');
@@ -66,12 +67,12 @@ function renderRecord() {
     player.play().catch(() => {});
   });
 }
-function renderBoard() {
-  panelBody.innerHTML = `<p class="modal-section-title">NOTES TO OUR FUTURE SELVES</p><div class="board-note"><strong>留一张便签给未来的我们</strong><p>这里会慢慢贴上值得记住的日期、车票、聊天摘录和那些讲不完的小故事。</p></div><div class="board-list"><div>我们的第一张便签 <span>待填写</span></div><div>一段难忘的旅程 <span>待填写</span></div><div>下一次见面的约定 <span>待填写</span></div></div><p class="small-note">这是回忆公告板的展示原型。真实故事可以在下一阶段加入。</p>`;
-}
+function renderBoard() { mountBoard(panelBody); }
 function openPanel(name) {
   const data = panels[name]; if (!data) return;
+  unmountBoard();
   currentPanel = name;
+  modalShell.classList.toggle('is-board', name === 'board');
   lastTrigger = document.activeElement;
   panelNumber.textContent = data.number; panelTitle.textContent = data.title; panelIntro.textContent = data.intro;
   if (name === 'wardrobe') renderWardrobe();
@@ -83,6 +84,7 @@ function openPanel(name) {
 }
 function closePanel() {
   if (!currentPanel) return;
+  unmountBoard();
   document.getElementById('audioPlayer')?.pause();
   if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = null; }
   photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
@@ -100,7 +102,7 @@ modalShell.addEventListener('click', event => { if (event.target.matches('[data-
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closePanel();
   if (event.key !== 'Tab' || !currentPanel) return;
-  const items = [...modalShell.querySelectorAll('button, input, audio[controls], [tabindex="0"]')].filter(el => !el.hidden && !el.disabled);
+  const items = [...modalShell.querySelectorAll('button, input, textarea, a[href], audio[controls], [tabindex="0"]')].filter(el => !el.hidden && !el.disabled && el.getClientRects().length);
   const first = items[0], last = items[items.length - 1];
   if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
   else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }

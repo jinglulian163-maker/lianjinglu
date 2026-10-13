@@ -1,0 +1,12 @@
+// Intentionally empty by default.
+// Add Drizzle tables here when the site actually needs a database.
+// See examples/d1/db/schema.ts for an opt-in example.
+import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+export const members = sqliteTable('members', { id: text('id').primaryKey(), slot: text('slot').notNull().unique() });
+export const notes = sqliteTable('notes', {
+  id: text('id').primaryKey(), author: text('author').notNull(), body: text('body').notNull(),
+  created: integer('created').notNull(), updated: integer('updated').notNull(), version: integer('version').notNull().default(1),
+  pinned: integer('pinned').notNull().default(0), archived: integer('archived').notNull().default(0), deleted: integer('deleted').notNull().default(0)
+});
+export const replies = sqliteTable('replies', { id: text('id').primaryKey(), note: text('note').notNull().references(()=>notes.id), author: text('author').notNull(), body: text('body').notNull(), created: integer('created').notNull() });
+export const reads = sqliteTable('reads', { note: text('note').notNull().references(()=>notes.id), member: text('member').notNull(), version: integer('version').notNull() }, t => [primaryKey({columns:[t.note,t.member]})]);

@@ -1,0 +1,77 @@
+let host=null, data=null, filter='active', timer=null, busy=false, loading=false, signature='', editor=null;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const date=n=>new Date(n).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const uid=()=>crypto.randomUUID();
+function message(text){const el=host?.querySelector('#boardStatus');if(el)el.textContent=text;}
+async function api(payload){const r=await fetch('/api/board',payload?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}:{cache:'no-store'});let d;try{d=await r.json();}catch{throw new Error('连接暂时中断，请稍后重试。');}if(!r.ok)throw Object.assign(new Error(d.error||'暂时无法保存。'),{status:r.status});return d;}
+function draftKey(){return `soft-hours-board-${data?.me||''}-${editor?.action||'create'}-${editor?.action==='create'?'new':editor?.id||'new'}`;}
+function saveDraft(){try{localStorage.setItem(draftKey(),host.querySelector('#boardText').value);}catch{}}
+function draw(){
+  if(!host||!data)return;
+  host.querySelector('#boardIdentity').textContent=`你是 ${data.me} · ${data.partnerReady?'两个人的留言板':'等另一位来小屋做客'}`;
+  const list=data.notes.filter(n=>filter==='trash'?n.deleted&&n.mine:!n.deleted&&(filter==='archive'?n.archived:!n.archived));
+  host.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===filter)));
+  host.querySelector('#boardList').innerHTML=list.length?list.map(n=>{
+    const unread=n.seen_version<n.version;
+    const replies=data.replies.filter(r=>r.note===n.id);
+    return `<article class="shared-note shared-note--${n.author_slot.toLowerCase()}" data-note="${n.id}"><header><strong>${n.author_slot} 的便签 ${n.pinned?'· 置顶':''}</strong><span>${date(n.created)}</span></header>${unread?'<span class="note-new">新留言</span>':''}<p class="note-message">${esc(n.body)}</p><small>${n.mine?(n.other_seen>=n.version?'对方看过了':'等对方拆开'):'写给我们的小日常'}</small>${replies.length?`<div class="note-replies">${replies.map(r=>`<p><b>${esc(r.author_slot)}</b> ${esc(r.body)}<time>${date(r.created)}</time></p>`).join('')}</div>`:''}<footer>${n.deleted?'<button data-op="restore">放回公告板</button>':`${!n.archived?'<button data-op="reply">回复</button>':''}${n.mine?'<button data-op="edit">编辑</button>':''}<button data-op="pin">${n.pinned?'取消置顶':'置顶'}</button><button data-op="archive">${n.archived?'移回公告板':'收进回忆盒'}</button>${n.mine?'<button data-op="delete">移入纸篓</button>':''}`}</footer></article>`;
+  }).join(''):`<div class="board-empty"><span aria-hidden="true">✳</span><p>${filter==='trash'?'纸篓是空的。':filter==='archive'?'收藏下来的便签，会住在这里。':'这里还很安静，贴上第一张便签吧。'}</p></div>`;
+  if(filter!=='trash'){
+    const items=list.filter(n=>n.seen_version<n.version).map(n=>({id:n.id,version:n.version}));
+    if(items.length)api({action:'read',items}).catch(()=>{});
+  }
+}
+async function sync(){
+  if(!host||loading||document.hidden)return;loading=true;
+  try{const next=await api();if(!host)return;const nextSig=JSON.stringify(next);data=next;if(signature!==nextSig){signature=nextSig;draw();}message('已连接 · 留言会自动同步');host.querySelector('#newNote').disabled=false;}
+  catch(e){message(e.message);if(e.status===401&&host)host.querySelector('#boardLogin').hidden=false;}
+  finally{loading=false;}
+}
+function openEditor(action,note){
+  if(busy)return;
+  editor={action,id:note?.id||uid(),version:note?.version,replyId:action==='reply'?uid():undefined};
+  const form=host.querySelector('#boardForm');form.hidden=false;
+  host.querySelector('#boardFormTitle').textContent=action==='reply'?`回复 ${note.author_slot}`:action==='edit'?'修改这张便签':'今天想告诉你';
+  const input=host.querySelector('#boardText');input.maxLength=action==='reply'?500:2000;input.value=action==='edit'?note.body:'';
+  // New-note drafts have a stable key; edit/reply drafts belong to their note.
+  try{const draft=localStorage.getItem(draftKey());if(draft)input.value=draft;}catch{}
+  input.focus();input.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+export function mountBoard(element){
+  unmountBoard();host=element;signature='';filter='active';
+  document.querySelector('[data-action="board"]')?.classList.remove('has-unread');
+  host.innerHTML=`<div class="board-toolbar"><p id="boardIdentity">正在打开你们的公告板…</p><button id="newNote" disabled>＋ 贴张便签</button></div><p id="boardStatus" role="status">连接中…</p><a id="boardLogin" href="/signin-with-chatgpt?return_to=/" target="_top" hidden>登录小屋</a><div class="board-tabs" aria-label="便签分类"><button data-filter="active" aria-pressed="true">公告板</button><button data-filter="archive" aria-pressed="false">回忆盒</button><button data-filter="trash" aria-pressed="false">我的纸篓</button><button id="boardRetry" aria-label="刷新公告板">↻</button></div><form id="boardForm" class="board-compose" hidden><label id="boardFormTitle" for="boardText">今天想告诉你</label><textarea id="boardText" required maxlength="2000" rows="4" placeholder="留一句话给对方…"></textarea><p id="boardFormStatus" role="status"></p><div><button type="submit" id="saveNote">贴上去</button><button type="button" id="cancelNote">暂时收起</button></div><small>未发送的草稿会留在这台设备上。</small></form><div id="boardList"></div>`;
+  host.querySelector('#newNote').onclick=()=>openEditor('create');
+  host.querySelector('#boardRetry').onclick=()=>sync();
+  host.querySelector('#cancelNote').onclick=()=>{saveDraft();host.querySelector('#boardForm').hidden=true;editor=null;};
+  host.querySelector('#boardText').oninput=saveDraft;
+  host.querySelector('#boardForm').onsubmit=async e=>{
+    e.preventDefault();if(busy||!editor)return;busy=true;
+    const view=host,submitted=editor;
+    const save=host.querySelector('#saveNote'),status=host.querySelector('#boardFormStatus');save.disabled=true;status.textContent='正在保存…';saveDraft();
+    const body=host.querySelector('#boardText').value.trim();const key=draftKey();
+    try{await api({...submitted,body});try{localStorage.removeItem(key);}catch{}if(host===view&&editor===submitted){host.querySelector('#boardText').value='';host.querySelector('#boardForm').hidden=true;status.textContent='';editor=null;}await sync();}
+    catch(err){status.textContent=err.message;if(err.status===409){await sync();const current=data?.notes.find(n=>n.id===submitted.id);if(current&&editor===submitted)editor.version=current.version;}}
+    finally{busy=false;save.disabled=false;}
+  };
+  host.onclick=async e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.filter){filter=b.dataset.filter;draw();return;}
+    const op=b.dataset.op;if(!op||busy)return;
+    const n=data.notes.find(n=>n.id===b.closest('[data-note]').dataset.note);if(!n)return;
+    if(op==='reply'||op==='edit'){openEditor(op,n);return;}
+    busy=true;b.disabled=true;
+    try{await api({action:op,id:n.id,version:n.version});await sync();}
+    catch(err){message(err.message);if(err.status===409)await sync();}
+    finally{busy=false;b.disabled=false;}
+  };
+  sync();timer=setInterval(sync,4000);
+}
+export function unmountBoard(){if(host&&editor&&!busy)saveDraft();clearInterval(timer);host=null;editor=null;}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
+window.addEventListener('online',sync);
+async function checkUnread(){
+  if(host||document.hidden)return;
+  try{const snapshot=await api();const count=snapshot.notes.filter(n=>!n.deleted&&!n.archived&&n.seen_version<n.version).length;const button=document.querySelector('[data-action="board"]');if(button){button.classList.toggle('has-unread',count>0);button.setAttribute('aria-label',count?`公告板 · ${count} 张便签有更新`:'公告板');}}catch{}
+}
+setInterval(checkUnread,15000);checkUnread();

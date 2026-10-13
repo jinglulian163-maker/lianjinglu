@@ -1,15 +1,26 @@
 # Soft Hours
 
-友谊回忆小屋的三维互动原型。
+A hand-painted 3D memory room with a shared J & K noticeboard.
 
-## 已实现
+## Source
 
-- 标题随滚动上移、淡出
-- 真正的 Three.js 三维房间，鼠标或触屏拖动可旋转视角
-- 衣柜照片预览、唱片机音频预览、公告板展示
-- 落地灯切换昼夜并记住选择
-- 手机与桌面布局
+- `public/`: existing room assets, controls, modal UI and board frontend.
+- `room.html`: root HTML returned by `app/route.ts` (keep its script/style references aligned with public/index.html).
+- `app/api/board/route.ts`: authenticated shared board API.
+- `db/schema.ts`, `drizzle/`: D1 schema and immutable migrations.
 
-房间目前是用程序构建的三维模型，保留了概念图里的主要物件和配色。它已能从不同角度观察，但家具细节与材质仍处于原型阶段。页面只有一个房间场景，向下滚动会让标题退场。
+## Identity
 
-照片和录音通过弹窗选择后仅在当前浏览器页面预览，不会上传、保存或同步给其他访客。要把真实回忆正式放进网站，需要提供素材并完成内容存储。
+Sites provides authenticated user headers. Configure runtime secrets BOARD_J_EMAIL and BOARD_K_EMAIL. On first authenticated use, an allowlisted email is bound to the stable site user ID and the unique J/K slot. Never add a browser-selectable identity. Grant the intended friend site access separately; without both the access grant and matching configured email, they cannot use the board. Do not expand the audience to publish.
+
+## Development
+
+Run the Sites dependency installer. For local preview, `.dev.vars` may contain BOARD_J_EMAIL=seedy@sites.test and BOARD_K_EMAIL=k@sites.test; this file is ignored. The standard local sign-in route supplies the J preview identity. Run `node scripts/run-framework.mjs dev --port 4173`. Apply migrations to local D1 as described in the Sites starter. Production and preview databases are separate; never copy local test data to production.
+
+## Verification and build
+
+`node tests/board-api.mjs` checks two-party access, author restrictions, cross-origin writes, idempotency, conflict detection, read receipts, archive and recovery using an isolated SQLite database.
+
+`node scripts/run-framework.mjs build` creates the worker and client assets. Publish with Sites source workflow and deployment archive; migrations are carried in dist/.openai/drizzle.
+
+The board polls every 4 seconds while open and checks unread state every 15 seconds while closed. Drafts are device-local; failed submissions are retained for manual retry. Photos and audio remain the earlier browser-only prototypes.
