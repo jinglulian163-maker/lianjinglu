@@ -47,3 +47,25 @@
 .modal-shell .memory-panel {animation:none;backdrop-filter:blur(16px) saturate(115%);-webkit-backdrop-filter:blur(16px) saturate(115%)}
 .modal-shell .modal-scrim {backdrop-filter:none;-webkit-backdrop-filter:none}
 .shared-note {content-visibility:auto;contain-intrinsic-size:auto 220px}
+/* Shared glass controls: blur only the few controls outside the glass dialog. */
+body {--control-glass:linear-gradient(145deg,#fffdf6b8,#fff8ef52 55%,#e8deef70);--control-edge:#ffffffb8;--control-text:#715f78;--control-shadow:0 3px 12px #69567516,inset 0 1px 1px #ffffffd9,inset 0 -1px 1px #bba9c333;--control-hover:linear-gradient(145deg,#ffffffda,#fff8ef80 55%,#e8deef9c);--control-active:linear-gradient(145deg,#e2cee9dd,#d9c3dcaa)}
+body.is-night {--control-glass:linear-gradient(145deg,#c5b3de3d,#605a793d 55%,#89719752);--control-edge:#e9d8fc59;--control-text:#f0e6f6;--control-shadow:0 3px 12px #10102026,inset 0 1px 1px #f4e7ff52,inset 0 -1px 1px #d9c0ee1a;--control-hover:linear-gradient(145deg,#c5b3de66,#605a7966 55%,#89719780);--control-active:linear-gradient(145deg,#ac8abd99,#856caa99)}
+body :is(.topbar__reset,.scene-actions button,.zoom-controls,.scene-loader button),
+body .modal-shell :is(button:not(.photo-slot),.upload-label,#boardLogin) {
+ background:var(--control-glass);border:1px solid var(--control-edge);color:var(--control-text);
+ box-shadow:var(--control-shadow);border-radius:999px;
+ transition:background-color .16s,border-color .16s,box-shadow .16s;
+}
+body :is(.topbar__reset,.scene-actions button,.zoom-controls) {backdrop-filter:blur(8px) saturate(115%);-webkit-backdrop-filter:blur(8px) saturate(115%)}
+body .modal-shell :is(button:not(.photo-slot),.upload-label) {backdrop-filter:none;-webkit-backdrop-filter:none}
+body :is(.topbar__reset,.scene-actions button,.scene-loader button):hover,
+body .modal-shell :is(button:not(.photo-slot),.upload-label):hover {background:var(--control-hover);transform:none}
+body .modal-shell .board-tabs [aria-pressed=true],body .modal-shell #saveNote {background:var(--control-active);border-color:#a489ad;box-shadow:var(--control-shadow),inset 0 0 0 1px #b496bf55}
+body .zoom-controls button {background:transparent;color:var(--control-text);box-shadow:none;border:0}
+body .zoom-controls button:hover {background:var(--control-hover)}
+body :is(button,.upload-label):focus-visible,body .upload-label:focus-within {outline:2px solid #a081ae;outline-offset:3px}
+body.is-night :is(button,.upload-label):focus-visible,body.is-night .upload-label:focus-within {outline-color:#e0c5ee}
+body button:disabled {opacity:.45;cursor:default}
+body .modal-shell #boardLogin {display:inline-block;padding:8px 14px;text-decoration:none}
+body .modal-shell #boardLogin[hidden] {display:none}
+@media(prefers-reduced-motion:reduce){body :is(button,.upload-label){transition:none}}
