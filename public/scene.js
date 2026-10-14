@@ -174,9 +174,12 @@ async function startRoom() {
   }
   new ResizeObserver(resize).observe(area); resize(); zoomStatus();
   let previousTime = performance.now();
+  const modal = document.getElementById("modalShell");
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
   renderer.setAnimationLoop(() => {
     const now = performance.now(), delta = Math.min((now-previousTime)/1000,.1); previousTime=now;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.hidden || (modal && !modal.hidden)) return;
+    const reduced = motionPreference.matches;
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     windowGlow.material.opacity = nightUniform.value * .36;
     controls.update(); renderer.render(scene, camera);
