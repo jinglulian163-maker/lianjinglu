@@ -1,0 +1,44 @@
+/* The shell never scrolls: its close control stays anchored above the content. */
+.modal-shell .memory-panel {
+  display:flex; flex-direction:column; padding:58px 0 0;
+  max-height:min(84svh,760px); overflow:hidden; isolation:isolate;
+  border:1px solid rgba(255,255,255,.76); border-radius:28px;
+  background:linear-gradient(135deg,rgba(255,253,247,.72),rgba(250,239,234,.46) 52%,rgba(242,237,252,.60));
+  -webkit-backdrop-filter:blur(24px) saturate(125%);
+  backdrop-filter:blur(24px) saturate(125%);
+  box-shadow:0 24px 80px #65546930,inset 0 1px 1px #fff,inset 0 -1px 2px #ffffff80,0 0 0 1px #ad91a31c;
+}
+.modal-shell .memory-panel__scroll {
+  min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  padding:0 30px 30px; scrollbar-width:thin; scrollbar-color:#bda5b5 transparent;
+  scroll-padding:16px;
+}
+.modal-shell .memory-panel__close {
+  position:absolute; z-index:3; top:13px; right:14px;
+  width:36px; height:36px; border-radius:50%; padding:0;
+  display:grid; place-items:center; transform:none;
+  background:#fffaf18c; border:1px solid #ffffffc9; color:#826980;
+  box-shadow:inset 0 1px 1px #fff,0 2px 8px #846d8420;
+}
+.modal-shell .memory-panel__close:hover {transform:none;background:#fffaf1d9}
+.modal-shell .memory-panel__close:focus-visible {outline:2px solid #9a7b98;outline-offset:3px}
+.modal-shell .memory-panel__close svg {display:block;width:20px;height:20px}
+.modal-shell .memory-panel:before {top:17px;left:27px;opacity:.7}
+.modal-shell .memory-panel__number {display:block;margin-top:0}
+.modal-shell .modal-scrim {background:#66557222;backdrop-filter:blur(2px)}
+.is-night .modal-shell .modal-scrim {background:#10122559}
+.is-night .modal-shell .memory-panel {
+  background:linear-gradient(135deg,#514d6dcc,#36364caa 55%,#635273b3);
+  border-color:#dbcee652;color:#eee5f2;
+  box-shadow:0 24px 80px #0b0b244d,inset 0 1px 1px #eee3ff66,inset 0 -1px 2px #d5c4ed29;
+}
+.is-night .modal-shell .memory-panel__close {color:#efe1f3;background:#c5acd52e;border-color:#e0cfeb5c;box-shadow:inset 0 1px 1px #e8dafa33}
+.is-night .modal-shell .memory-panel__close:hover {background:#c5acd552}
+@media(max-width:600px) {
+  .modal-shell .memory-panel {border-radius:24px;max-height:84svh}
+  .modal-shell .memory-panel__scroll {padding:0 21px 24px}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .modal-shell .memory-panel {background:#faf4ecf5}
+  .is-night .modal-shell .memory-panel {background:#39374ef5}
+}
