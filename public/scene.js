@@ -38,7 +38,7 @@ async function startRoom() {
   controls.enableDamping = true; controls.dampingFactor = .1;
   controls.enablePan = false; controls.enableZoom = true;
   controls.minZoom = .65; controls.maxZoom = 2.3; controls.zoomSpeed = .7;
-  controls.minDistance = initialDistance / 2.3; controls.maxDistance = initialDistance / .65;
+  controls.minDistance = initialDistance; controls.maxDistance = initialDistance;
   controls.rotateSpeed = .5;
   controls.minPolarAngle = .35; controls.maxPolarAngle = 1.68;
   controls.minAzimuthAngle = -Infinity; controls.maxAzimuthAngle = Infinity;
@@ -47,17 +47,20 @@ async function startRoom() {
   controls.update();
   const zoomIn = document.getElementById('zoomIn'), zoomOut = document.getElementById('zoomOut');
   function zoomStatus() {
-    const zoom = initialDistance / camera.position.distanceTo(target);
+    const zoom = camera.zoom;
     zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
     zoomIn.disabled = zoom >= controls.maxZoom - .001;
     zoomOut.disabled = zoom <= controls.minZoom + .001;
     updateProjection();
   }
   function zoomBy(factor) {
-    const offset = camera.position.clone().sub(target);
-    offset.setLength(THREE.MathUtils.clamp(offset.length() / factor, controls.minDistance, controls.maxDistance));
-    camera.position.copy(target).add(offset); controls.update(); zoomStatus();
+    camera.zoom = THREE.MathUtils.clamp(camera.zoom * factor, controls.minZoom, controls.maxZoom);
+    zoomStatus();
   }
+  // Adapt the bundled OrbitControls dolly hooks so wheel, pinch and middle-drag
+  // use lens magnification, never moving the viewpoint toward the furniture.
+  controls._dollyOut = factor => zoomBy(factor);
+  controls._dollyIn = factor => zoomBy(1 / factor);
   controls.addEventListener('change', zoomStatus);
   zoomIn.addEventListener('click', () => zoomBy(1.15));
   zoomOut.addEventListener('click', () => zoomBy(1 / 1.15));
