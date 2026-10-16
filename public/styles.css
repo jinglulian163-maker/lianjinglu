@@ -16,7 +16,7 @@ html,body{height:100%;overflow:hidden;background:#f3e3d1}
 .room-section{height:100svh;min-height:0}.room-sticky{position:relative;height:100svh;min-height:0;background:#f3e3d1 url('./assets/painted-background.png') center/cover no-repeat}
 .room-sticky:after{display:none}.backdrop-glow{display:none}
 .hero-copy{position:fixed;top:70px;width:90vw;transform:translateX(-50%);opacity:1;will-change:auto}
-.hero-copy h1{font-size:clamp(68px,7.6vw,110px);-webkit-text-stroke:.7px #aa8290}
+.hero-copy h1{font-size:clamp(68px,7.6vw,110px);-webkit-text-stroke:1.4px #aa8290}
 .hero-copy .eyebrow{color:#8f727c;font-size:9px;margin-bottom:8px}.hero-copy__sub{color:#8b727b;font-size:11px;margin-top:12px}
 .topbar{height:62px}.topbar__mark{color:#927c96}.topbar__caption{color:#866f7d}
 .topbar__reset{background:rgba(255,249,235,.75);border-color:#b8a0ac;color:#755e78;backdrop-filter:blur(8px)}.topbar__reset:hover{background:#fff5e5}
@@ -55,7 +55,7 @@ html,body{height:100%;overflow:hidden;background:#f3e3d1}
 .topbar__mark,.topbar__caption,.hero-copy h1,.hero-copy__sub,.eyebrow,.scene-actions button,.zoom-controls,.scene-guide,.scene-foot,.memory-panel{transition:color .6s,background-color .6s,border-color .6s}
 .is-night{--cream:#e6d5ed;--paper:#38364f;--ink:#eee0ec}
 .is-night .topbar__mark{color:#dac3e7}.is-night .topbar__caption{color:#b9aac9}
-.is-night .hero-copy h1{color:#e6d5ed;-webkit-text-stroke:.7px #af99c3}.is-night .hero-copy .eyebrow{color:#b5abc9}.is-night .hero-copy__sub{color:#c8bbd6}
+.is-night .hero-copy h1{color:#e6d5ed;-webkit-text-stroke:1.4px #af99c3}.is-night .hero-copy .eyebrow{color:#b5abc9}.is-night .hero-copy__sub{color:#c8bbd6}
 .is-night .topbar__reset,.is-night .scene-actions button,.is-night .zoom-controls{background:#34344dda;color:#ded1e8;border-color:#77708f}
 .is-night .topbar__reset:hover,.is-night .scene-actions button:hover,.is-night .zoom-controls button:hover{background:#514b69}
 .is-night .scene-guide,.is-night .scene-foot{color:#b7acca}.is-night .guide-symbol{color:#d2bfe3}
