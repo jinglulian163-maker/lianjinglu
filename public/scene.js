@@ -91,15 +91,17 @@ async function startRoom() {
   room.scale.y = 1 / .92;
   const nightUniform = { value: document.body.classList.contains('is-night') ? 1 : 0 };
   let nightTarget = nightUniform.value;
+  const curtainOpening = {value:new THREE.Vector2(-3.15,3.15)};
   room.traverse(object => {
     if (!object.isMesh) return;
     object.material.dispose();
     object.material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
     object.material.onBeforeCompile = shader => {
       shader.uniforms.uNight = nightUniform;
+      shader.uniforms.uCurtainOpening = curtainOpening;
       shader.vertexShader = 'varying vec3 vRoomPosition;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\nvRoomPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-      shader.fragmentShader = 'uniform float uNight; varying vec3 vRoomPosition;\n' + shader.fragmentShader;
+      shader.fragmentShader = 'uniform float uNight; uniform vec2 uCurtainOpening; varying vec3 vRoomPosition;\n' + shader.fragmentShader;
       shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `
         float distanceFromWindow = max(0.0, vRoomPosition.x + 5.3);
         float windowY = vRoomPosition.y + distanceFromWindow * .52;
@@ -108,7 +110,11 @@ async function startRoom() {
         opening *= 1.0-smoothstep(2.6,3.15,abs(windowZ));
         float mullions = smoothstep(.03,.14,abs(sin(windowZ * 1.904)));
         mullions *= smoothstep(.035,.15,abs(windowY-2.91));
-        float moon = opening * mix(.35,1.0,mullions) * exp(-distanceFromWindow*.16);
+        float curtainGap = max(0.0, uCurtainOpening.y-uCurtainOpening.x);
+        float curtainMask = smoothstep(uCurtainOpening.x-.08,uCurtainOpening.x+.08,windowZ)
+                          * (1.0-smoothstep(uCurtainOpening.y-.08,uCurtainOpening.y+.08,windowZ));
+        float curtainTransmission = smoothstep(0.0,.35,curtainGap);
+        float moon = opening * curtainMask * curtainTransmission * mix(.35,1.0,mullions) * exp(-distanceFromWindow*.16);
         vec3 nightColor = outgoingLight * vec3(.24,.30,.49) + vec3(.12,.20,.32) * moon;
         outgoingLight = mix(outgoingLight, nightColor, uNight);
         #include <opaque_fragment>
@@ -118,6 +124,7 @@ async function startRoom() {
   });
   scene.add(room);
   const curtains = installCurtains({room,camera,canvas,controls,meshes,hoverLabel});
+  curtainOpening.value.fromArray(curtains.lightOpening);
   const windowGlow = new THREE.Mesh(new THREE.PlaneGeometry(6.35,2.45),new THREE.MeshBasicMaterial({color:0x92afd9,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));
   windowGlow.rotation.y = Math.PI/2; windowGlow.position.set(-5.48,2.58,.05); room.add(windowGlow);
   function nightMode(night) { nightTarget = night ? 1 : 0; }
@@ -186,7 +193,11 @@ async function startRoom() {
     if (document.hidden || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
-    windowGlow.material.opacity = nightUniform.value * .36;
+    const aperture = curtains.lightOpening;
+    curtainOpening.value.x = reduced ? aperture[0] : THREE.MathUtils.damp(curtainOpening.value.x,aperture[0],14,delta);
+    curtainOpening.value.y = reduced ? aperture[1] : THREE.MathUtils.damp(curtainOpening.value.y,aperture[1],14,delta);
+    const gap = Math.max(0,curtainOpening.value.y-curtainOpening.value.x);
+    windowGlow.material.opacity = nightUniform.value * .36 * THREE.MathUtils.smoothstep(gap,0,4.6);
     if (!curtains.dragging) controls.update(); renderer.render(scene, camera);
   });
   loader.hidden = true;
