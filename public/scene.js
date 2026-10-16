@@ -144,7 +144,10 @@ async function startRoom() {
     if (down) { if (Math.hypot(event.clientX - down.x, event.clientY - down.y) > 6) dragged = true; return; }
     if (event.pointerType === 'touch') return;
     const action = hitAt(event.clientX, event.clientY);
-    canvas.style.cursor = action ? 'pointer' : 'grab'; hoverLabel.hidden = !action;
+    const isCurtain = action === 'curtainLeft' || action === 'curtainRight';
+    curtains.hover(event,isCurtain);
+    if (!isCurtain) canvas.style.cursor = action ? 'pointer' : 'grab';
+    hoverLabel.hidden = !action || isCurtain;
     if (action) {
       const rect = area.getBoundingClientRect(); hoverLabel.textContent = labels[action];
       hoverLabel.style.left = `${Math.min(event.clientX - rect.left, rect.width - 205)}px`;
