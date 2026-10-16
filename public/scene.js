@@ -1,3 +1,4 @@
+import { installCurtains } from './curtains.js';
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
@@ -7,7 +8,7 @@ const area = document.getElementById('sceneArea');
 const loader = document.getElementById('sceneLoader');
 const hoverLabel = document.getElementById('hoverLabel');
 const zoomLevel = document.getElementById('zoomLevel');
-const labels = { wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
+const labels = { curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
 
 async function startRoom() {
   const scene = new THREE.Scene();
@@ -116,6 +117,7 @@ async function startRoom() {
     materials.push(object.material); meshes.push(object);
   });
   scene.add(room);
+  const curtains = installCurtains({room,camera,canvas,controls,meshes,hoverLabel});
   const windowGlow = new THREE.Mesh(new THREE.PlaneGeometry(6.35,2.45),new THREE.MeshBasicMaterial({color:0x92afd9,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));
   windowGlow.rotation.y = Math.PI/2; windowGlow.position.set(-5.48,2.58,.05); room.add(windowGlow);
   function nightMode(night) { nightTarget = night ? 1 : 0; }
@@ -182,7 +184,7 @@ async function startRoom() {
     const reduced = motionPreference.matches;
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     windowGlow.material.opacity = nightUniform.value * .36;
-    controls.update(); renderer.render(scene, camera);
+    if (!curtains.dragging) controls.update(); renderer.render(scene, camera);
   });
   loader.hidden = true;
   canvas.dataset.modelReady = 'true';
