@@ -1,3 +1,4 @@
+import { installTurntable } from './turntable.js';
 import { installWardrobe } from './wardrobe.js';
 import { installCurtains } from './curtains.js';
 import * as THREE from 'three';
@@ -128,6 +129,9 @@ async function startRoom() {
   });
   scene.add(room);
   const wardrobe = installWardrobe(room);
+  const turntable = installTurntable(room);
+  window.addEventListener('soft-hours:record-playback',e=>turntable.setPlaying(e.detail.playing));
+  window.addEventListener('soft-hours:record-anchor',e=>{room.updateMatrixWorld(true);const p=turntable.anchor.project(camera),r=canvas.getBoundingClientRect();e.detail.x=r.left+(p.x+1)*r.width/2;e.detail.y=r.top+(1-p.y)*r.height/2;});
   const curtains = installCurtains({room,camera,canvas,controls,meshes,hoverLabel});
   curtainOpening.value.fromArray(curtains.lightOpening);
   const windowGlow = new THREE.Mesh(new THREE.PlaneGeometry(6.35,2.45),new THREE.MeshBasicMaterial({color:0x92afd9,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));
@@ -199,6 +203,7 @@ async function startRoom() {
     if (document.hidden || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
     wardrobe.update(delta,reduced);
+    turntable.update(delta,reduced);
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     const aperture = curtains.lightOpening;
     curtainOpening.value.x = reduced ? aperture[0] : THREE.MathUtils.damp(curtainOpening.value.x,aperture[0],14,delta);

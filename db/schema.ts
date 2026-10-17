@@ -11,3 +11,4 @@ export const notes = sqliteTable('notes', {
 });
 export const replies = sqliteTable('replies', { id: text('id').primaryKey(), note: text('note').notNull().references(()=>notes.id), author: text('author').notNull(), body: text('body').notNull(), created: integer('created').notNull() });
 export const reads = sqliteTable('reads', { note: text('note').notNull().references(()=>notes.id), member: text('member').notNull(), version: integer('version').notNull() }, t => [primaryKey({columns:[t.note,t.member]})]);
+export const records = sqliteTable('records', {id:text('id').primaryKey(),owner:text('owner').notNull(),title:text('title').notNull(),memory:text('memory').notNull(),day:text('day').notNull(),mime:text('mime').notNull(),size:integer('size').notNull(),cover_mime:text('cover_mime').notNull(),cover_size:integer('cover_size').notNull(),digest:text('digest').notNull(),created:integer('created').notNull(),ready:integer('ready').notNull().default(0)});

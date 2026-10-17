@@ -15,6 +15,13 @@
       "when": 1791903058980,
       "tag": "0001_shallow_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792217875305,
+      "tag": "0002_sticky_longshot",
+      "breakpoints": true
     }
   ]
 }

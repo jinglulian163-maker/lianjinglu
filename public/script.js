@@ -1,3 +1,4 @@
+import {mountRecords, unmountRecords} from './records.js';
 import { mountPhotos, unmountPhotos } from './photos.js';
 import { mountBoard, unmountBoard } from './board.js';
 const roomSection = document.getElementById('roomSection');
@@ -34,31 +35,18 @@ document.getElementById('resetView').addEventListener('click', () => {
 
 const panels = {
   wardrobe: { number: '01 / THE WARDROBE', title: '照片衣柜', intro: '拉开柜门，那些舍不得删掉的瞬间都在这里。' },
-  record: { number: '02 / THE RECORD PLAYER', title: '唱片机', intro: '一首歌，一段声音，就能把那一天带回来。' },
+  record: { number: '02 / THE RECORD PLAYER', title: '挑一张，听听那一天', intro: '从唱片架抽出一段声音，放进我们的小小时光。' },
   board: { number: '03 / THE MEMORY BOARD', title: '回忆公告板', intro: '有些日子值得被钉在墙上，偶尔抬头再看一眼。' }
 };
 function renderWardrobe() { mountPhotos(panelBody); }
-function renderRecord() {
-  panelBody.innerHTML = `<div class="record-art" id="recordArt" aria-hidden="true"><div class="record-disc"></div><div class="record-tonearm"></div></div><p class="modal-section-title">SOUNDS WE KEPT</p><div class="empty-state" id="audioEmpty">这里还没有放入录音。你可以先选择一段音频，试试唱片机的播放效果。</div><div class="record-controls"><audio id="audioPlayer" controls hidden></audio></div><label class="upload-label">选择一段录音 <span aria-hidden="true">♪</span><input type="file" id="audioInput" accept="audio/*" /></label><p class="small-note" id="audioFileNote">原型预览：音频仅在当前页面播放，不会上传或保存。</p>`;
-  const player = document.getElementById('audioPlayer');
-  player.addEventListener('play', () => document.getElementById('recordArt')?.classList.add('is-playing'));
-  player.addEventListener('pause', () => document.getElementById('recordArt')?.classList.remove('is-playing'));
-  document.getElementById('audioInput').addEventListener('change', event => {
-    const file = event.target.files[0]; if (!file || !file.type.startsWith('audio/')) return;
-    if (localAudioUrl) URL.revokeObjectURL(localAudioUrl);
-    localAudioUrl = URL.createObjectURL(file);
-    player.src = localAudioUrl; player.hidden = false;
-    document.getElementById('audioEmpty').hidden = true;
-    document.getElementById('audioFileNote').textContent = `已选择：${file.name} · 仅在当前页面播放，不会上传或保存。`;
-    player.play().catch(() => {});
-  });
-}
+function renderRecord() { mountRecords(panelBody); }
 function renderBoard() { mountBoard(panelBody); }
 function openPanel(name) {
   const data = panels[name]; if (!data) return;
-  unmountBoard(); unmountPhotos();
+  unmountBoard(); unmountPhotos(); unmountRecords();
   currentPanel = name;
   modalShell.classList.toggle('is-board', name === 'board');
+  modalShell.classList.toggle('is-records', name === 'record');
   lastTrigger = document.activeElement;
   panelNumber.textContent = data.number; panelTitle.textContent = data.title; panelIntro.textContent = data.intro;
   if (name === 'wardrobe') renderWardrobe();
@@ -71,7 +59,7 @@ function openPanel(name) {
 }
 function closePanel() {
   if (!currentPanel) return;
-  unmountBoard(); unmountPhotos();
+  unmountBoard(); unmountPhotos(); unmountRecords();
   document.getElementById('audioPlayer')?.pause();
   if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = null; }
   photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
@@ -79,6 +67,7 @@ function closePanel() {
   document.querySelector('main').inert = false;
   currentPanel = null; if (lastTrigger?.focus) lastTrigger.focus();
 }
+window.addEventListener('soft-hours:close', closePanel);
 window.addEventListener('soft-hours:open', event => openPanel(event.detail));
 document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
