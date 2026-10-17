@@ -55,6 +55,7 @@ function openPanel(name) {
   modalShell.hidden = false; document.body.style.overflow = 'hidden';
   modalShell.querySelector('.memory-panel__scroll').scrollTop = 0;
   document.querySelector('main').inert = true;
+  document.querySelector('.record-player-bar').inert = true;
   document.getElementById('closePanel').focus();
 }
 function closePanel() {
