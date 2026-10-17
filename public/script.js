@@ -1,3 +1,4 @@
+import {mountThings,unmountThings} from './little-things.js';
 import {mountRecords, unmountRecords} from './records.js';
 import { mountPhotos, unmountPhotos } from './photos.js';
 import { mountBoard, unmountBoard } from './board.js';
@@ -34,6 +35,9 @@ document.getElementById('resetView').addEventListener('click', () => {
 });
 
 const panels = {
+  letters:{number:'04 / LETTERS TO TOMORROW',title:'未来来信',intro:'把今天想说的话，留给未来某一天的你。'},
+  presence:{number:'05 / TWO CUPS OF TEA',title:'你也在这里吗',intro:'两只杯子，给你们各留一个位置。'},
+  pillow:{number:'06 / A LITTLE SECRET',title:'抱枕里的小纸条',intro:'轻轻碰三下，就会掉出一句悄悄话。'},
   wardrobe: { number: '01 / THE WARDROBE', title: '照片衣柜', intro: '拉开柜门，那些舍不得删掉的瞬间都在这里。' },
   record: { number: '02 / THE RECORD PLAYER', title: '挑一张，听听那一天', intro: '从唱片架抽出一段声音，放进我们的小小时光。' },
   board: { number: '03 / THE MEMORY BOARD', title: '回忆公告板', intro: '有些日子值得被钉在墙上，偶尔抬头再看一眼。' }
@@ -43,7 +47,7 @@ function renderRecord() { mountRecords(panelBody); }
 function renderBoard() { mountBoard(panelBody); }
 function openPanel(name) {
   const data = panels[name]; if (!data) return;
-  unmountBoard(); unmountPhotos(); unmountRecords();
+  unmountBoard(); unmountPhotos(); unmountRecords(); unmountThings();
   currentPanel = name;
   modalShell.classList.toggle('is-board', name === 'board');
   modalShell.classList.toggle('is-records', name === 'record');
@@ -52,6 +56,7 @@ function openPanel(name) {
   if (name === 'wardrobe') renderWardrobe();
   if (name === 'record') renderRecord();
   if (name === 'board') renderBoard();
+  if (['letters','presence','pillow'].includes(name)) mountThings(panelBody,name);
   modalShell.hidden = false; document.body.style.overflow = 'hidden';
   modalShell.querySelector('.memory-panel__scroll').scrollTop = 0;
   document.querySelector('main').inert = true;
@@ -60,7 +65,7 @@ function openPanel(name) {
 }
 function closePanel() {
   if (!currentPanel) return;
-  unmountBoard(); unmountPhotos(); unmountRecords();
+  unmountBoard(); unmountPhotos(); unmountRecords(); unmountThings();
   document.getElementById('audioPlayer')?.pause();
   if (localAudioUrl) { URL.revokeObjectURL(localAudioUrl); localAudioUrl = null; }
   photoUrls.forEach(URL.revokeObjectURL); photoUrls = [];
@@ -72,6 +77,7 @@ window.addEventListener('soft-hours:close', closePanel);
 window.addEventListener('soft-hours:open', event => openPanel(event.detail));
 document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
+  else if(button.dataset.action==='pillow') window.dispatchEvent(new Event('soft-hours:pillow'));
   else openPanel(button.dataset.action);
 }));
 document.getElementById('closePanel').addEventListener('click', closePanel);

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+const base='http://127.0.0.1:4174';
+const call=(user,body,origin=base)=>fetch(base+'/api/little-things',{method:body?'POST':'GET',headers:{...(user?{'oai-authenticated-user-id':user}:{}),Origin:origin,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+assert.equal((await call(null)).status,401);assert.equal((await call('outsider')).status,403);
+assert.equal((await call('local_seedy',{action:'heartbeat'},'https://other.test')).status,403);
+assert.equal((await call('local_seedy',{action:'heartbeat'})).status,200);
+const p={action:'letter',id:crypto.randomUUID(),title:'本地定时测试',body:'未来正文',unlock_at:Date.now()+3000};
+assert.equal((await call('local_seedy',p)).status,200);assert.equal((await call('local_seedy',p)).status,200);
+let d=await(await call('local_k')).json();assert.equal(d.letters.find(x=>x.id===p.id).body,null);assert(d.members.find(x=>x.slot==='J').online);
+assert.equal((await call('local_k',{action:'open',id:p.id})).status,403);
+assert.equal((await call('local_seedy',{action:'open',id:p.id})).status,404);
+await new Promise(r=>setTimeout(r,3200));const opened=await(await call('local_k',{action:'open',id:p.id})).json();assert.equal(opened.body,p.body);
+d=await(await call('local_seedy')).json();assert.equal(d.letters.filter(x=>x.id===p.id).length,1);assert.equal(d.letters.find(x=>x.id===p.id).opened,1);
+assert.equal((await call('local_seedy',{action:'phrase',id:crypto.randomUUID(),body:'本地纸条测试'})).status,200);
+d=await(await call('local_k')).json();assert(d.phrases.some(x=>x.body==='本地纸条测试'));
+console.log('PASS auth, CSRF, real presence, locked body withheld, early-open blocked, timed opening, idempotency, shared pillow notes');
