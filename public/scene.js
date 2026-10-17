@@ -1,3 +1,4 @@
+import { installWardrobe } from './wardrobe.js';
 import { installCurtains } from './curtains.js';
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
@@ -8,7 +9,7 @@ const area = document.getElementById('sceneArea');
 const loader = document.getElementById('sceneLoader');
 const hoverLabel = document.getElementById('hoverLabel');
 const zoomLevel = document.getElementById('zoomLevel');
-const labels = { curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
+const labels = { wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
 
 async function startRoom() {
   const scene = new THREE.Scene();
@@ -126,6 +127,7 @@ async function startRoom() {
     materials.push(object.material); meshes.push(object);
   });
   scene.add(room);
+  const wardrobe = installWardrobe(room);
   const curtains = installCurtains({room,camera,canvas,controls,meshes,hoverLabel});
   curtainOpening.value.fromArray(curtains.lightOpening);
   const windowGlow = new THREE.Mesh(new THREE.PlaneGeometry(6.35,2.45),new THREE.MeshBasicMaterial({color:0x92afd9,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false}));
@@ -168,7 +170,8 @@ async function startRoom() {
     fingers.delete(event.pointerId);
     if (down && !dragged && !fingers.size && (event.button === 0 || event.pointerType === 'touch')) {
       const action = hitAt(event.clientX, event.clientY);
-      if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
+      if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
+      else if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
       else if (action) window.dispatchEvent(new CustomEvent('soft-hours:open', { detail: action }));
     }
     if (!fingers.size) { down = null; canvas.classList.remove('is-dragging'); }
@@ -195,6 +198,7 @@ async function startRoom() {
     const now = performance.now(), delta = Math.min((now-previousTime)/1000,.1); previousTime=now;
     if (document.hidden || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
+    wardrobe.update(delta,reduced);
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     const aperture = curtains.lightOpening;
     curtainOpening.value.x = reduced ? aperture[0] : THREE.MathUtils.damp(curtainOpening.value.x,aperture[0],14,delta);
