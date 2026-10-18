@@ -1,3 +1,4 @@
+import {installSnowglobe} from './snowglobe.js';
 import {prepareLittleThings,installLittleThings} from './little-scene.js';
 import { installTurntable } from './turntable.js';
 import { installWardrobe } from './wardrobe.js';
@@ -205,7 +206,7 @@ async function startRoom() {
   const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
   renderer.setAnimationLoop(() => {
     const now = performance.now(), delta = Math.min((now-previousTime)/1000,.1); previousTime=now;
-    if (document.hidden || (modal && !modal.hidden)) return;
+    if (document.hidden || document.body.classList.contains('is-globe') || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
     wardrobe.update(delta,reduced);
     little.update(delta,reduced);
@@ -219,6 +220,7 @@ async function startRoom() {
     if (!curtains.dragging) controls.update(); renderer.render(scene, camera);
   });
   loader.hidden = true;
+  installSnowglobe(room);
   canvas.dataset.modelReady = 'true';
 }
 startRoom().catch(error => {
