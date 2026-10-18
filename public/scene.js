@@ -1,3 +1,4 @@
+import {prepareBed,installBed} from './bed.js';
 import {installSnowglobe} from './snowglobe.js';
 import {prepareLittleThings,installLittleThings} from './little-scene.js';
 import { installTurntable } from './turntable.js';
@@ -12,7 +13,7 @@ const area = document.getElementById('sceneArea');
 const loader = document.getElementById('sceneLoader');
 const hoverLabel = document.getElementById('hoverLabel');
 const zoomLevel = document.getElementById('zoomLevel');
-const labels = {pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
+const labels = {bed:'床铺 · 点击乱床 / 整理',pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
 
 async function startRoom() {
   const scene = new THREE.Scene();
@@ -99,6 +100,7 @@ async function startRoom() {
   const nightUniform = { value: document.body.classList.contains('is-night') ? 1 : 0 };
   let nightTarget = nightUniform.value;
   const curtainOpening = {value:new THREE.Vector2(-3.15,3.15)};
+  const bedParts = await prepareBed(room);
   const envelope = prepareLittleThings(room);
   room.traverse(object => {
     if (!object.isMesh) return;
@@ -131,6 +133,7 @@ async function startRoom() {
     materials.push(object.material); meshes.push(object);
   });
   scene.add(room);
+  const bed = installBed(bedParts);
   const little = installLittleThings(room,envelope);
   window.dispatchEvent(new Event('soft-hours:things-ready'));
   const wardrobe = installWardrobe(room);
@@ -180,6 +183,7 @@ async function startRoom() {
     if (down && !dragged && !fingers.size && (event.button === 0 || event.pointerType === 'touch')) {
       const action = hitAt(event.clientX, event.clientY);
       if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
+      else if (action === 'bed') bed.toggle();
       else if (action === 'pillow') little.tap();
       else if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
       else if (action) window.dispatchEvent(new CustomEvent('soft-hours:open', { detail: action }));
@@ -209,7 +213,7 @@ async function startRoom() {
     if (document.hidden || document.body.classList.contains('is-globe') || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
     wardrobe.update(delta,reduced);
-    little.update(delta,reduced);
+    little.update(delta,reduced); bed.update(delta,reduced);
     turntable.update(delta,reduced);
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     const aperture = curtains.lightOpening;
