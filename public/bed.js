@@ -22,12 +22,12 @@ export function installBed(parts){
  const quilt=parts.quilt,position=quilt.geometry.attributes.position,original=position.array.slice();
  const pillows=[parts.bedPillowA,parts.bedPillowB].map(mesh=>{mesh.geometry.computeBoundingBox();const center=mesh.geometry.boundingBox.getCenter(new THREE.Vector3());mesh.geometry.translate(-center.x,-center.y,-center.z);mesh.position.copy(center);return {mesh,center};});
  let progress=0,from=0,to=0,elapsed=0,moving=false;
- function toggle(){if(moving)return;from=progress;to=progress===0?1:0;elapsed=0;moving=true;button.disabled=true;button.textContent=to?'正在闹腾…':'正在铺好…';status.textContent=to?'枕头蹦开了，被子也鼓起来啦。':'被子慢慢铺平，枕头回到原位。';}
+ function toggle(){if(moving)return;from=progress;to=progress===0?1:0;elapsed=0;moving=true;if(button){button.disabled=true;button.textContent=to?'正在闹腾…':'正在铺好…';}status.textContent=to?'枕头蹦开了，被子也鼓起来啦。':'被子慢慢铺平，枕头回到原位。';}
  function pose(t,hop){
   for(let i=0;i<original.length;i+=3){const x=original[i],y=original[i+1],z=original[i+2],edge=THREE.MathUtils.smoothstep(y,.35,1.05),bump=Math.exp(-((x+3.2)**2*1.7+(z-.2)**2*.75));position.array[i]=x+t*.12*Math.sin(z*2)*edge;position.array[i+1]=y+t*(.62*bump+.10*(1+Math.sin(z*5+x*2)))*edge;position.array[i+2]=z+t*.18*Math.sin(x*3)*edge;}
   position.needsUpdate=true;quilt.geometry.computeBoundingSphere();
   pillows.forEach(({mesh,center},i)=>{const sign=i?1:-1;mesh.position.copy(center).add(new THREE.Vector3(sign*.19*t,hop*(i?.7:.45)+t*(i?-.08:.12),t*(i?.82:.24)));mesh.rotation.set(t*(i?.18:-.12),sign*t*.26,sign*t*.10);});
  }
- button.disabled=false;button.addEventListener('click',toggle);
- return {toggle,update(dt,reduced){if(!moving)return;elapsed+=dt;const t=reduced?1:Math.min(1,elapsed/1.65),ease=t*t*(3-2*t);progress=from+(to-from)*ease;pose(progress,reduced?0:Math.sin(Math.PI*t)**2*(to?1:.4));if(t===1){moving=false;button.disabled=false;button.textContent=to?'整理床铺':'一键乱床';button.setAttribute('aria-pressed',String(to===1));status.textContent=to?'床铺乱好啦，再点一次就能整理。':'床铺已经整理好。';}}};
+ if(button){button.disabled=false;button.addEventListener('click',toggle);}
+ return {toggle,update(dt,reduced){if(!moving)return;elapsed+=dt;const t=reduced?1:Math.min(1,elapsed/1.65),ease=t*t*(3-2*t);progress=from+(to-from)*ease;pose(progress,reduced?0:Math.sin(Math.PI*t)**2*(to?1:.4));if(t===1){moving=false;if(button){button.disabled=false;button.textContent=to?'整理床铺':'一键乱床';button.setAttribute('aria-pressed',String(to===1));}status.textContent=to?'床铺乱好啦，再点一次就能整理。':'床铺已经整理好。';}}};
 }
