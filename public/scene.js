@@ -105,7 +105,7 @@ async function startRoom() {
   let nightTarget = nightUniform.value;
   const curtainOpening = {value:new THREE.Vector2(-3.15,3.15)};
   const bedParts = await prepareBed(room);
-  const cat = prepareCat(room,bedParts.quilt);
+  const cat = prepareCat(room);
   const envelope = prepareLittleThings(room);
   prepareWardrobeClothes(room);
   room.traverse(object => {
