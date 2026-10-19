@@ -32,5 +32,5 @@ export function installBed(parts){
   pillows.forEach(({mesh,center},i)=>{mesh.position.copy(center).add(new THREE.Vector3(.16*t,hop*.65+.14*t,.48*t));mesh.rotation.set(.12*t,.24*t,-.08*t);});
  }
  if(button){button.disabled=false;button.addEventListener('click',toggle);}
- return {toggle,update(dt,reduced){if(!moving)return;elapsed+=dt;const t=reduced?1:Math.min(1,elapsed/1.65),ease=t*t*(3-2*t);progress=from+(to-from)*ease;pose(progress,reduced?0:Math.sin(Math.PI*t)**2*(to?1:.4));if(t===1){moving=false;if(button){button.disabled=false;button.textContent=to?'整理床铺':'一键乱床';button.setAttribute('aria-pressed',String(to===1));}status.textContent=to?'床铺乱好啦，再点一次就能整理。':'床铺已经整理好。';}}};
+ return {toggle,update(dt,reduced){if(!moving)return;elapsed+=dt;const t=reduced?1:Math.min(1,elapsed/1.65),ease=t*t*(3-2*t);progress=from+(to-from)*ease;pose(progress,reduced?0:Math.sin(Math.PI*t)**2*(to?1:.4));if(t===1){moving=false;if(button){button.disabled=false;button.textContent=to?'整理床铺':'一键乱床';button.setAttribute('aria-pressed',String(to===1));}status.textContent=to?'床铺乱好啦，再点一次就能整理。':'床铺已经整理好。';if(to===1)window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:'bedPrank'}));}}};
 }
