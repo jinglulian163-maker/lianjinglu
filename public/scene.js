@@ -104,8 +104,8 @@ async function startRoom() {
   const envelope = prepareLittleThings(room);
   room.traverse(object => {
     if (!object.isMesh) return;
-    object.material.dispose();
-    object.material = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    const surfaceMap=object.material.map; object.material.dispose();
+    object.material = new THREE.MeshBasicMaterial({ vertexColors: true, map: surfaceMap, side: THREE.DoubleSide });
     object.material.onBeforeCompile = shader => {
       shader.uniforms.uNight = nightUniform;
       shader.uniforms.uCurtainOpening = curtainOpening;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {createWholePillow} from './whole-pillow.js';
+import {createWholePillow,dressPillow} from './whole-pillow.js';
 
 // Vertex ranges identify the original quilt (including sewn flowers) and the complete bed pillow (upper and lower shells).
 // Keep the original positions as the exact tidy pose; never accumulate deformation.
@@ -15,7 +15,7 @@ export async function prepareBed(room){
   for(const [key,attr] of Object.entries(g.attributes)){const values=new attr.array.constructor(buckets[name].length*attr.itemSize);buckets[name].forEach((id,j)=>{for(let k=0;k<attr.itemSize;k++)values[j*attr.itemSize+k]=attr.array[id*attr.itemSize+k];});geometry.setAttribute(key,new THREE.BufferAttribute(values,attr.itemSize,attr.normalized));}
   const finalGeometry=name==='bedPillow'?createWholePillow(geometry):geometry;
   if(finalGeometry!==geometry)geometry.dispose();
-  const mesh=new THREE.Mesh(finalGeometry,source.material.clone());mesh.name=name;mesh.userData.action='bed';source.parent.add(mesh);result[name]=mesh;
+  const mesh=new THREE.Mesh(finalGeometry,source.material.clone());mesh.name=name;if(name==='bedPillow')dressPillow(mesh);mesh.userData.action='bed';source.parent.add(mesh);result[name]=mesh;
  }
  g.setIndex(buckets.room);return result;
 }
@@ -23,7 +23,7 @@ export async function prepareBed(room){
 export function installBed(parts){
  const button=document.getElementById('bedButton'),status=document.getElementById('bedStatus');
  const quilt=parts.quilt,position=quilt.geometry.attributes.position,original=position.array.slice();
- const pillows=[parts.bedPillow].map(mesh=>{mesh.geometry.computeBoundingBox();const center=mesh.geometry.boundingBox.getCenter(new THREE.Vector3());mesh.geometry.translate(-center.x,-center.y,-center.z);mesh.position.copy(center);return {mesh,center};});
+ const pillows=[parts.bedPillow].map(mesh=>{mesh.geometry.computeBoundingBox();const center=mesh.geometry.boundingBox.getCenter(new THREE.Vector3());mesh.geometry.translate(-center.x,-center.y,-center.z);mesh.children.forEach(child=>child.geometry?.translate(-center.x,-center.y,-center.z));mesh.position.copy(center);return {mesh,center};});
  let progress=0,from=0,to=0,elapsed=0,moving=false;
  function toggle(){if(moving)return;from=progress;to=progress===0?1:0;elapsed=0;moving=true;if(button){button.disabled=true;button.textContent=to?'正在闹腾…':'正在铺好…';}status.textContent=to?'枕头蹦开了，被子也鼓起来啦。':'被子慢慢铺平，枕头回到原位。';}
  function pose(t,hop){

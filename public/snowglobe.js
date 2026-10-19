@@ -24,7 +24,7 @@ export function installSnowglobe(room){
    const camera=new THREE.PerspectiveCamera(36,1,.1,80);camera.position.set(9,6.3,11);camera.lookAt(0,1.9,0);
    controls=new OrbitControls(camera,canvas);controls.target.set(0,1.9,0);controls.enableDamping=true;controls.enablePan=false;controls.minDistance=12;controls.maxDistance=22;controls.minPolarAngle=.55;controls.maxPolarAngle=1.48;controls.rotateSpeed=.5;controls.zoomSpeed=.6;controls.update();
    function material(m){materials.add(m);return m;}function mesh(g,m){geometries.add(g);return new THREE.Mesh(g,material(m));}
-   const copy=room.clone(true);copy.traverse(o=>{if(o.isMesh){o.material=material(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,color:night?0x8d9cce:0xffffff}));if(!o.geometry.attributes.color)o.visible=false;}else if(o.isLine||o.isSprite)o.visible=false;});
+   const copy=room.clone(true);copy.traverse(o=>{if(o.isMesh){o.material=material(new THREE.MeshBasicMaterial({vertexColors:true,map:o.material.map,side:THREE.DoubleSide,color:night?0x8d9cce:0xffffff}));if(!o.geometry.attributes.color)o.visible=false;}else if(o.isLine||o.isSprite)o.visible=false;});
    copy.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(copy),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3()),scale=2.55/Math.hypot(size.x/2,size.z/2);
    const miniature=new THREE.Group();miniature.add(copy);copy.position.x-=center.x;copy.position.z-=center.z;copy.position.y-=bounds.min.y;miniature.scale.setScalar(scale);miniature.position.y=.12;world.add(miniature);
    const base=mesh(new THREE.CylinderGeometry(2.78,2.92,.48,96),new THREE.MeshBasicMaterial({color:night?0x66607c:0xdcc7bd}));base.position.y=-.20;world.add(base);
