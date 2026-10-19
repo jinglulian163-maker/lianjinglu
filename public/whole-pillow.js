@@ -10,7 +10,7 @@ export function createWholePillow(original){
  function vertex(x,y,z){
   const px=center.x+x*half.x,py=center.y+y*half.y,pz=center.z+z*half.z;
   positions.push(px,py,pz);
-  const shade=.90+.10*(y+1)/2; const palette=[[.91,.84,.64],[.72,.69,.80],[.95,.89,.73],[.85,.75,.69]]; const color=palette[Math.min(3,Math.floor((z+1)*2))];
+  const shade=.87+.13*(y+1)/2; const palette=[[.82,.74,.49],[.46,.60,.69],[.60,.54,.68],[.78,.64,.58]]; const column=Math.min(2,Math.floor((x+1)*1.5)),row=z>0?1:0; const color=palette[[0,1,0,2,0,3][row*3+column]];
   colors.push(...color.map(v=>v*shade));
  }
  vertex(0,1,0);
