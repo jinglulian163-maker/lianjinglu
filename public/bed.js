@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {createWholePillow} from './whole-pillow.js';
 
 // Vertex ranges identify the original quilt (including sewn flowers) and the complete bed pillow (upper and lower shells).
 // Keep the original positions as the exact tidy pose; never accumulate deformation.
@@ -12,7 +13,9 @@ export async function prepareBed(room){
  for(const name of ['quilt','bedPillow']){
   const geometry=new THREE.BufferGeometry();
   for(const [key,attr] of Object.entries(g.attributes)){const values=new attr.array.constructor(buckets[name].length*attr.itemSize);buckets[name].forEach((id,j)=>{for(let k=0;k<attr.itemSize;k++)values[j*attr.itemSize+k]=attr.array[id*attr.itemSize+k];});geometry.setAttribute(key,new THREE.BufferAttribute(values,attr.itemSize,attr.normalized));}
-  const mesh=new THREE.Mesh(geometry,source.material.clone());mesh.name=name;mesh.userData.action='bed';source.parent.add(mesh);result[name]=mesh;
+  const finalGeometry=name==='bedPillow'?createWholePillow(geometry):geometry;
+  if(finalGeometry!==geometry)geometry.dispose();
+  const mesh=new THREE.Mesh(finalGeometry,source.material.clone());mesh.name=name;mesh.userData.action='bed';source.parent.add(mesh);result[name]=mesh;
  }
  g.setIndex(buckets.room);return result;
 }
