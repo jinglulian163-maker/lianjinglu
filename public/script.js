@@ -82,6 +82,7 @@ window.addEventListener('soft-hours:open', event => openPanel(event.detail));
 document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
   else if(button.dataset.action==='pillow') window.dispatchEvent(new Event('soft-hours:pillow'));
+  else if(['wardrobe','record'].includes(button.dataset.action)) window.dispatchEvent(new CustomEvent('soft-hours:approach',{detail:button.dataset.action}));
   else openPanel(button.dataset.action);
 }));
 document.getElementById('closePanel').addEventListener('click', closePanel);

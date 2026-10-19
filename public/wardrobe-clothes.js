@@ -32,6 +32,17 @@ export function prepareWardrobeClothes(room) {
     const seam=new THREE.Mesh(seamGeo,new THREE.MeshBasicMaterial({vertexColors:true}));
     seam.position.set(0,-h*.12,d/2-.005);seam.userData.action='wardrobe';cloth.add(seam);
   }
+  const album=new THREE.Group();album.name='Memory album';
+  function albumPart(w,h,d,x,y,z,color){
+    const g=new THREE.BoxGeometry(w,h,d),c=new THREE.Color(color),a=[];
+    for(let i=0;i<g.attributes.position.count;i++)a.push(c.r,c.g,c.b);
+    g.setAttribute('color',new THREE.Float32BufferAttribute(a,3));
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true}));m.position.set(x,y,z);m.userData.action='wardrobeAlbum';album.add(m);
+  }
+  albumPart(.62,.1,.56,3.43,2.54,-3.17,'#b6a1bc');
+  albumPart(.47,.008,.37,3.43,2.595,-3.17,'#f3e8d2');
+  albumPart(.24,.009,.18,3.43,2.603,-3.17,'#9aafbf');
+  room.add(album);
   [0.255,1.175,2.195].forEach((shelf,row)=>{
     [3.43,4.31].forEach((x,col)=>{
       const count=row===2?2:3;

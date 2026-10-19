@@ -14,7 +14,7 @@ const area = document.getElementById('sceneArea');
 const loader = document.getElementById('sceneLoader');
 const hoverLabel = document.getElementById('hoverLabel');
 const zoomLevel = document.getElementById('zoomLevel');
-const labels = {bed:'床铺',pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
+const labels = {wardrobeAlbum:'相册 · 翻看照片',bed:'床铺',pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
 
 async function startRoom() {
   const scene = new THREE.Scene();
@@ -70,7 +70,9 @@ async function startRoom() {
   controls.addEventListener('change', zoomStatus);
   zoomIn.addEventListener('click', () => zoomBy(1.15));
   zoomOut.addEventListener('click', () => zoomBy(1 / 1.15));
+  let focusedItem=null, savedView=null, focusTween=null;
   function reset() {
+    focusedItem=null; savedView=null; focusTween=null; controls.maxZoom=2.3; controls.enabled=true; roomFocus.set(0,1.68,0);
     controls.enableDamping = false; controls.update();
     camera.position.copy(initialPosition); camera.zoom = 1;
     controls.target.copy(target); camera.updateProjectionMatrix(); controls.update();
@@ -149,6 +151,25 @@ async function startRoom() {
   function nightMode(night) { nightTarget = night ? 1 : 0; }
   nightMode(document.body.classList.contains('is-night'));
   window.addEventListener('soft-hours:night', event => nightMode(event.detail));
+  function category(action){return action?.startsWith('wardrobe')?'wardrobe':action==='record'?'record':null;}
+  function moveView(to){
+    controls.enableDamping=false; controls.update(); controls.enableDamping=true;
+    focusTween={time:0,from:{position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom},to};
+    controls.enabled=false; hoverLabel.hidden=true;
+  }
+  function approach(name){
+    if(focusTween)return true;
+    if(focusedItem===name)return false;
+    if(!savedView)savedView={position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom};
+    focusedItem=name; controls.maxZoom=3.5;
+    const center=name==='wardrobe'?new THREE.Vector3(3.9,1.72,-3.1):new THREE.Vector3(-.65,1.3,-3.15);
+    const aim=new THREE.Vector3(center.x,8.5,center.z);
+    moveView({position:aim.clone().add(new THREE.Vector3(7,0,24.65)),target:aim,focus:center,zoom:Math.min(3.5,Math.max(2.3,camera.aspect<.8?3.3:2.7))});
+    return true;
+  }
+  function returnView(){if(!savedView||focusTween)return;const view=savedView;savedView=null;focusedItem=null;controls.maxZoom=2.3;moveView(view);}
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('modalShell').hidden)returnView();},true);
+  window.addEventListener('soft-hours:approach',e=>{if(!approach(e.detail))window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:e.detail}));});
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
   function hitAt(x, y) {
     const rect = canvas.getBoundingClientRect();
@@ -175,7 +196,7 @@ async function startRoom() {
     if (!isCurtain) canvas.style.cursor = action ? 'pointer' : 'grab';
     hoverLabel.hidden = !action || isCurtain;
     if (action) {
-      const rect = area.getBoundingClientRect(); hoverLabel.textContent = labels[action];
+      const rect = area.getBoundingClientRect(); hoverLabel.textContent = category(action)&&focusedItem!==category(action)?(category(action)==='wardrobe'?'衣柜 · 靠近看看':'唱片 · 靠近看看'):labels[action];
       hoverLabel.style.left = `${Math.min(event.clientX - rect.left, rect.width - 205)}px`;
       hoverLabel.style.top = `${event.clientY - rect.top}px`;
     }
@@ -184,7 +205,11 @@ async function startRoom() {
     fingers.delete(event.pointerId);
     if (down && !dragged && !fingers.size && (event.button === 0 || event.pointerType === 'touch')) {
       const action = hitAt(event.clientX, event.clientY);
-      if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
+      if (focusTween) {}
+      else if(category(action)&&approach(category(action))) {}
+      else if(!action) returnView();
+      else if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
+      else if(action==='wardrobeAlbum') window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:'wardrobe'}));
       else if (action === 'bed') bed.toggle();
       else if (action === 'pillow') little.tap();
       else if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
@@ -214,6 +239,11 @@ async function startRoom() {
     const now = performance.now(), delta = Math.min((now-previousTime)/1000,.1); previousTime=now;
     if (document.hidden || document.body.classList.contains('is-globe') || (modal && !modal.hidden)) return;
     const reduced = motionPreference.matches;
+    if(focusTween){
+      const t=focusTween;t.time+=delta;const p=reduced?1:Math.min(1,t.time/.65),e=p*p*(3-2*p);
+      camera.position.lerpVectors(t.from.position,t.to.position,e);controls.target.lerpVectors(t.from.target,t.to.target,e);roomFocus.lerpVectors(t.from.focus,t.to.focus,e);camera.zoom=THREE.MathUtils.lerp(t.from.zoom,t.to.zoom,e);camera.lookAt(controls.target);zoomStatus();
+      if(p===1){focusTween=null;controls.enabled=true;controls.update();}
+    }
     wardrobe.update(delta,reduced);
     little.update(delta,reduced); bed.update(delta,reduced);
     turntable.update(delta,reduced);
@@ -223,7 +253,7 @@ async function startRoom() {
     curtainOpening.value.y = reduced ? aperture[1] : THREE.MathUtils.damp(curtainOpening.value.y,aperture[1],14,delta);
     const gap = Math.max(0,curtainOpening.value.y-curtainOpening.value.x);
     windowGlow.material.opacity = nightUniform.value * .36 * THREE.MathUtils.smoothstep(gap,0,4.6);
-    if (!curtains.dragging) controls.update(); renderer.render(scene, camera);
+    if (!curtains.dragging && !focusTween) controls.update(); renderer.render(scene, camera);
   });
   loader.hidden = true;
   installSnowglobe(room);
