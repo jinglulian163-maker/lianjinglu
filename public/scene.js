@@ -3,6 +3,7 @@ import {installSnowglobe} from './snowglobe.js';
 import {prepareLittleThings,installLittleThings} from './little-scene.js';
 import { installTurntable } from './turntable.js';
 import { installWardrobe } from './wardrobe.js';
+import { prepareWardrobeClothes } from './wardrobe-clothes.js';
 import { installCurtains } from './curtains.js';
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
@@ -102,6 +103,7 @@ async function startRoom() {
   const curtainOpening = {value:new THREE.Vector2(-3.15,3.15)};
   const bedParts = await prepareBed(room);
   const envelope = prepareLittleThings(room);
+  prepareWardrobeClothes(room);
   room.traverse(object => {
     if (!object.isMesh) return;
     const surfaceMap=object.material.map; object.material.dispose();
