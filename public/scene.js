@@ -155,7 +155,7 @@ async function startRoom() {
   function nightMode(night) { nightTarget = night ? 1 : 0; }
   nightMode(document.body.classList.contains('is-night'));
   window.addEventListener('soft-hours:night', event => nightMode(event.detail));
-  function category(action){return action?.startsWith('wardrobe')?'wardrobe':action==='record'?'record':null;}
+  function category(action){return action?.startsWith('wardrobe')?'wardrobe':action==='record'?'record':action==='letters'?'letters':null;}
   function moveView(to){
     controls.enableDamping=false; controls.update(); controls.enableDamping=true;
     focusTween={time:0,from:{position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom},to};
@@ -166,9 +166,10 @@ async function startRoom() {
     if(focusedItem===name)return false;
     if(!savedView)savedView={position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom};
     focusedItem=name; controls.maxZoom=3.5;
-    const center=name==='wardrobe'?new THREE.Vector3(3.9,1.72,-3.1):new THREE.Vector3(-.65,1.3,-3.15);
+    room.updateMatrixWorld(true);
+    const center=name==='letters'?envelope.getWorldPosition(new THREE.Vector3()):name==='wardrobe'?new THREE.Vector3(3.9,1.72,-3.1):new THREE.Vector3(-.65,1.3,-3.15);
     const aim=new THREE.Vector3(center.x,8.5,center.z);
-    moveView({position:aim.clone().add(new THREE.Vector3(7,0,24.65)),target:aim,focus:center,zoom:Math.min(3.5,Math.max(2.3,camera.aspect<.8?3.3:2.7))});
+    moveView({position:aim.clone().add(new THREE.Vector3(7,0,24.65)),target:aim,focus:center,zoom:name==='letters'?3.5:Math.min(3.5,Math.max(2.3,camera.aspect<.8?3.3:2.7))});
     return true;
   }
   function returnView(){if(!savedView||focusTween)return;const view=savedView;savedView=null;focusedItem=null;controls.maxZoom=2.3;moveView(view);}
@@ -200,7 +201,7 @@ async function startRoom() {
     if (!isCurtain) canvas.style.cursor = action ? 'pointer' : 'grab';
     hoverLabel.hidden = !action || isCurtain;
     if (action) {
-      const rect = area.getBoundingClientRect(); hoverLabel.textContent = category(action)&&focusedItem!==category(action)?(category(action)==='wardrobe'?'衣柜 · 靠近看看':'唱片 · 靠近看看'):labels[action];
+      const rect = area.getBoundingClientRect(); hoverLabel.textContent = category(action)&&focusedItem!==category(action)?(category(action)==='wardrobe'?'衣柜 · 靠近看看':category(action)==='letters'?'信封':'唱片 · 靠近看看'):labels[action];
       hoverLabel.style.left = `${Math.min(event.clientX - rect.left, rect.width - 205)}px`;
       hoverLabel.style.top = `${event.clientY - rect.top}px`;
     }
