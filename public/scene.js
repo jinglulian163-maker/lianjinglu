@@ -1,4 +1,5 @@
 import {prepareCat} from './cat.js';
+import {removeLampPlants} from './remove-lamp-plants.js';
 import {prepareBed,installBed} from './bed.js';
 import {installSnowglobe} from './snowglobe.js';
 import {prepareLittleThings,installLittleThings} from './little-scene.js';
@@ -104,6 +105,7 @@ async function startRoom() {
   const nightUniform = { value: document.body.classList.contains('is-night') ? 1 : 0 };
   let nightTarget = nightUniform.value;
   const curtainOpening = {value:new THREE.Vector2(-3.15,3.15)};
+  removeLampPlants(room);
   const bedParts = await prepareBed(room);
   const cat = prepareCat(room);
   const envelope = prepareLittleThings(room);
