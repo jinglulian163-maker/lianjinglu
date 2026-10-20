@@ -35,28 +35,28 @@ export function prepareCat(room){
  function update(dt,reduced){
   dt=Math.min(dt,.05);time+=dt;stateTime+=dt;
   if(state==='rise'){stand=THREE.MathUtils.smoothstep(stateTime,0,.55);if(stateTime>=.55){stand=1;state='run';stateTime=0;}}
-  let turn=0;
+  let turn=0,jump=0,jumpPhase=0;
   if(state==='run'){
    const remaining=length-distance,desired=Math.min(reduced?1.1:2.4,Math.sqrt(Math.max(0,remaining)*3.6));
    speed=THREE.MathUtils.damp(speed,desired,4,dt);const travel=Math.min(remaining,speed*dt);distance+=travel;
-   const u=Math.min(1,distance/length),point=route.getPointAt(u),tangent=route.getTangentAt(Math.min(.999,u));cat.position.copy(point);
+   const u=Math.min(1,distance/length),point=route.getPointAt(u),tangent=route.getTangentAt(Math.min(.999,u));cat.position.copy(point); const motion=route.motionAt(u);jump=motion.jump?Math.sin(Math.PI*motion.t):0;jumpPhase=motion.t;
    const heading=Math.atan2(-tangent.z,tangent.x),error=Math.atan2(Math.sin(heading-cat.rotation.y),Math.cos(heading-cat.rotation.y));
    cat.rotation.y+=error*(1-Math.exp(-12*dt));turn=THREE.MathUtils.clamp((cat.rotation.y-lastHeading)/Math.max(.001,dt),-2,2);lastHeading=cat.rotation.y;
    phase+=travel/.62; if(remaining<.015){cat.position.copy(route.getPointAt(1));speed=0;state='settle';stateTime=0;}
   }
   if(state==='settle'){stand=1-THREE.MathUtils.smoothstep(stateTime,0,.7);if(stateTime>=.7){stand=0;state='rest';stateTime=0;}}
-  const moving=state==='run',bounce=moving&&!reduced?.018*Math.cos(phase*Math.PI*4):0;
+  const moving=state==='run',bounce=jump>0?-.055*Math.sin(jumpPhase*Math.PI*2):(moving&&!reduced?.018*Math.cos(phase*Math.PI*4):0);
   body.position.set(THREE.MathUtils.lerp(-.22,-.04,stand),.26+.29*stand+bounce,THREE.MathUtils.lerp(-.06,0,stand));
   body.scale.set(1+.22*stand,1-.12*stand+(state==='rest'&&!reduced?Math.sin(time*1.65)*.018:0),1-.25*stand);
-  body.rotation.z=moving&&!reduced?Math.sin(phase*Math.PI*2)*.025:0;
+  body.rotation.z=jump>0?.16*Math.cos(jumpPhase*Math.PI):(moving&&!reduced?Math.sin(phase*Math.PI*2)*.025:0);
   head.position.set(.31+.20*stand,.26+.36*stand+bounce*.45,.19*(1-stand));head.rotation.set(-.06*stand,Math.PI*.5*stand,-.10*(1-stand));
   closedEyes.forEach(m=>m.visible=stand<.6);openEyes.forEach(m=>m.visible=stand>=.6);
   tucked.forEach(m=>{m.scale.setScalar(Math.max(.001,1-stand));});curledTail.scale.setScalar(Math.max(.001,1-stand));
   for(const leg of legs){
    leg.limb.scale.setScalar(Math.max(.001,stand));
    const cycle=(phase+leg.phase)%1,stance=cycle<.58;
-   const stride=moving?.18:0,offset=stance?THREE.MathUtils.lerp(stride,-stride,cycle/.58):THREE.MathUtils.lerp(-stride,stride,(cycle-.58)/.42);
-   const lift=moving&&!stance?Math.sin((cycle-.58)/.42*Math.PI)*.13:0;
+   const stride=moving&&jump<.1?.18:0,offset=stance?THREE.MathUtils.lerp(stride,-stride,cycle/.58):THREE.MathUtils.lerp(-stride,stride,(cycle-.58)/.42);
+   const lift=jump>0?jump*.18:(moving&&!stance?Math.sin((cycle-.58)/.42*Math.PI)*.13:0);
    const x=leg.front?.31:-.37,z=leg.side*.205;
    const hip=new THREE.Vector3(x,.49+bounce,z),foot=new THREE.Vector3(x+offset,.058+lift,z);
    const mid=hip.clone().add(foot).multiplyScalar(.5),v=foot.clone().sub(hip),len=v.length();
