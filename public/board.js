@@ -9,14 +9,14 @@ function saveDraft(){try{localStorage.setItem(draftKey(),host.querySelector('#bo
 function draw(){
   if(!host||!data)return;
   host.querySelector('#boardIdentity').textContent=`你是 ${data.me} · ${data.partnerReady?'两个人的留言板':'等另一位来小屋做客'}`;
-  const list=data.notes.filter(n=>filter==='trash'?n.deleted&&n.mine:!n.deleted&&(filter==='archive'?n.archived:!n.archived));
+  const list=data.notes.filter(n=>!n.deleted&&(filter==='archive'?n.archived:!n.archived));
   host.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===filter)));
   host.querySelector('#boardList').innerHTML=list.length?list.map(n=>{
     const unread=n.seen_version<n.version;
     const replies=data.replies.filter(r=>r.note===n.id);
-    return `<article class="shared-note shared-note--${n.author_slot.toLowerCase()}" data-note="${n.id}"><header><strong>${n.author_slot} 的便签 ${n.pinned?'· 置顶':''}</strong><span>${date(n.created)}</span></header>${unread?'<span class="note-new">新留言</span>':''}<p class="note-message">${esc(n.body)}</p><small>${n.mine?(n.other_seen>=n.version?'对方看过了':'等对方拆开'):'写给我们的小日常'}</small>${replies.length?`<div class="note-replies">${replies.map(r=>`<p><b>${esc(r.author_slot)}</b> ${esc(r.body)}<time>${date(r.created)}</time></p>`).join('')}</div>`:''}<footer>${n.deleted?'<button data-op="restore">放回公告板</button>':`${!n.archived?'<button data-op="reply">回复</button>':''}${n.mine?'<button data-op="edit">编辑</button>':''}<button data-op="pin">${n.pinned?'取消置顶':'置顶'}</button><button data-op="archive">${n.archived?'移回公告板':'收进回忆盒'}</button>${n.mine?'<button data-op="delete">移入纸篓</button>':''}`}</footer></article>`;
-  }).join(''):`<div class="board-empty"><span aria-hidden="true">✳</span><p>${filter==='trash'?'纸篓是空的。':filter==='archive'?'收藏下来的便签，会住在这里。':'这里还很安静，贴上第一张便签吧。'}</p></div>`;
-  if(filter!=='trash'){
+    return `<article class="shared-note shared-note--${n.author_slot.toLowerCase()}" data-note="${n.id}"><header><strong>${n.author_slot} 的便签 ${n.pinned?'· 置顶':''}</strong><span>${date(n.created)}</span></header>${unread?'<span class="note-new">新留言</span>':''}<p class="note-message">${esc(n.body)}</p><small>${n.mine?(n.other_seen>=n.version?'对方看过了':'等对方拆开'):'写给我们的小日常'}</small>${replies.length?`<div class="note-replies">${replies.map(r=>`<p><b>${esc(r.author_slot)}</b> ${esc(r.body)}<time>${date(r.created)}</time></p>`).join('')}</div>`:''}<footer>${!n.archived?'<button data-op="reply">回复</button>':''}${n.mine?'<button data-op="edit">编辑</button>':''}<button data-op="pin">${n.pinned?'取消置顶':'置顶'}</button><button data-op="archive">${n.archived?'移回公告板':'收进回忆盒'}</button>${n.mine?'<button data-op="delete">删除</button>':''}</footer></article>`;
+  }).join(''):`<div class="board-empty"><span aria-hidden="true">✳</span><p>${filter==='archive'?'收藏下来的便签，会住在这里。':'这里还很安静，贴上第一张便签吧。'}</p></div>`;
+  {
     const items=list.filter(n=>n.seen_version<n.version).map(n=>({id:n.id,version:n.version}));
     if(items.length)api({action:'read',items}).catch(()=>{});
   }
@@ -40,7 +40,7 @@ function openEditor(action,note){
 export function mountBoard(element){
   unmountBoard();host=element;signature='';filter='active';
   document.querySelector('[data-action="board"]')?.classList.remove('has-unread');
-  host.innerHTML=`<div class="board-toolbar"><p id="boardIdentity">正在打开你们的公告板…</p><button id="newNote" disabled>＋ 贴张便签</button></div><p id="boardStatus" role="status">连接中…</p><a id="boardLogin" href="/signin-with-chatgpt?return_to=/" target="_top" hidden>登录小屋</a><div class="board-tabs" aria-label="便签分类"><button data-filter="active" aria-pressed="true">公告板</button><button data-filter="archive" aria-pressed="false">回忆盒</button><button data-filter="trash" aria-pressed="false">我的纸篓</button><button id="boardRetry" aria-label="刷新公告板">↻</button></div><form id="boardForm" class="board-compose" hidden><label id="boardFormTitle" for="boardText">今天想告诉你</label><textarea id="boardText" required maxlength="2000" rows="4" placeholder="留一句话给对方…"></textarea><p id="boardFormStatus" role="status"></p><div><button type="submit" id="saveNote">贴上去</button><button type="button" id="cancelNote">暂时收起</button></div><small>未发送的草稿会留在这台设备上。</small></form><div id="boardList"></div>`;
+  host.innerHTML=`<div class="board-toolbar"><p id="boardIdentity">正在打开你们的公告板…</p><button id="newNote" disabled>＋ 贴张便签</button></div><p id="boardStatus" role="status">连接中…</p><a id="boardLogin" href="/signin-with-chatgpt?return_to=/" target="_top" hidden>登录小屋</a><div class="board-tabs" aria-label="便签分类"><button data-filter="active" aria-pressed="true">公告板</button><button data-filter="archive" aria-pressed="false">回忆盒</button><button id="boardRetry" aria-label="刷新公告板">↻</button></div><form id="boardForm" class="board-compose" hidden><label id="boardFormTitle" for="boardText">今天想告诉你</label><textarea id="boardText" required maxlength="2000" rows="4" placeholder="留一句话给对方…"></textarea><p id="boardFormStatus" role="status"></p><div><button type="submit" id="saveNote">贴上去</button><button type="button" id="cancelNote">暂时收起</button></div><small>未发送的草稿会留在这台设备上。</small></form><div id="boardList"></div>`;
   host.querySelector('#newNote').onclick=()=>openEditor('create');
   host.querySelector('#boardRetry').onclick=()=>sync();
   host.querySelector('#cancelNote').onclick=()=>{saveDraft();host.querySelector('#boardForm').hidden=true;editor=null;};
@@ -61,7 +61,7 @@ export function mountBoard(element){
     const n=data.notes.find(n=>n.id===b.closest('[data-note]').dataset.note);if(!n)return;
     if(op==='reply'||op==='edit'){openEditor(op,n);return;}
     busy=true;b.disabled=true;
-    try{await api({action:op,id:n.id,version:n.version});await sync();}
+    try{await api({action:op,id:n.id,version:n.version});if(op==='delete'){data.notes=data.notes.filter(note=>note.id!==n.id);data.replies=data.replies.filter(reply=>reply.note!==n.id);draw();}await sync();}
     catch(err){message(err.message);if(err.status===409)await sync();}
     finally{busy=false;b.disabled=false;}
   };

@@ -23,7 +23,7 @@ export async function GET(request:Request) {
   try {
     const {id,slot,db}=await identity(request);
     const results=await db.batch([
-      db.prepare('SELECT n.*,m.slot AS author_slot, COALESCE(r.version,0) AS seen_version, COALESCE((SELECT MAX(version) FROM reads WHERE note=n.id AND member<>?),0) AS other_seen FROM notes n JOIN members m ON n.author=m.id LEFT JOIN reads r ON r.note=n.id AND r.member=? ORDER BY n.pinned DESC,n.created DESC').bind(id,id),
+      db.prepare('SELECT n.*,m.slot AS author_slot, COALESCE(r.version,0) AS seen_version, COALESCE((SELECT MAX(version) FROM reads WHERE note=n.id AND member<>?),0) AS other_seen FROM notes n JOIN members m ON n.author=m.id LEFT JOIN reads r ON r.note=n.id AND r.member=? WHERE n.deleted=0 ORDER BY n.pinned DESC,n.created DESC').bind(id,id),
       db.prepare('SELECT r.id,r.note,r.body,r.created,m.slot AS author_slot FROM replies r JOIN members m ON m.id=r.author ORDER BY r.created'),
       db.prepare('SELECT slot FROM members ORDER BY slot')
     ]);
@@ -66,8 +66,17 @@ export async function POST(request:Request) {
     }
     if(!Number.isInteger(p.version)||p.version!==note.version)fail('这张便签刚刚有了更新，已为你保留草稿，请刷新后重试。',409);
     if(['edit','delete','restore'].includes(p.action)&&note.author!==id)fail('只能修改或移除自己写的便签。',403);
-    if(note.deleted&&p.action!=='restore')fail('这张便签已放入纸篓。',409);
-    const actions:Record<string,[string,any]>={edit:['body',p.action==='edit'?text(p.body,2000):''],pin:['pinned',note.pinned?0:1],archive:['archived',note.archived?0:1],delete:['deleted',1],restore:['deleted',0]};
+    if(note.deleted)fail('这张便签已删除。',404);
+    if(p.action==='delete') {
+      const results=await db.batch([
+        db.prepare('DELETE FROM replies WHERE note=? AND EXISTS(SELECT 1 FROM notes WHERE id=? AND author=? AND version=?)').bind(p.id,p.id,id,p.version),
+        db.prepare('DELETE FROM reads WHERE note=? AND EXISTS(SELECT 1 FROM notes WHERE id=? AND author=? AND version=?)').bind(p.id,p.id,id,p.version),
+        db.prepare('DELETE FROM notes WHERE id=? AND author=? AND version=?').bind(p.id,id,p.version)
+      ]);
+      if(!results[2].meta.changes)fail('便签刚刚有更新，请刷新后重试。',409);
+      return reply({ok:true});
+    }
+    const actions:Record<string,[string,any]>={edit:['body',p.action==='edit'?text(p.body,2000):''],pin:['pinned',note.pinned?0:1],archive:['archived',note.archived?0:1]};
     const action=actions[p.action];if(!action)fail('操作无效。');
     const result=await db.prepare(`UPDATE notes SET ${action[0]}=?,updated=?,version=version+1 WHERE id=? AND version=?`).bind(action[1],now,p.id,p.version).run();
     if(!result.meta.changes)fail('便签刚刚有更新，请刷新后重试。',409);
