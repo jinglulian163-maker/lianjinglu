@@ -37,12 +37,12 @@ export function prepareCat(room){
   if(state==='rise'){stand=THREE.MathUtils.smoothstep(stateTime,0,.55);if(stateTime>=.55){stand=1;state='run';stateTime=0;}}
   let turn=0,jump=0,jumpPhase=0;
   if(state==='run'){
-   // Total action: .55s rise + at most 2.4s travel + .7s settle.
-   const duration=Math.min(2.4,Math.max(1.1,length/1.1)),progress=Math.min(1,stateTime/duration);
+   // Total action: .55s rise + at most 4.6s travel + .7s settle.
+   const duration=Math.min(4.6,Math.max(2.6,length/1.3)),progress=Math.min(1,stateTime/duration);
    const u=progress*progress*(3-2*progress),nextDistance=u*length,travel=nextDistance-distance;distance=nextDistance;
    const point=route.getPointAt(u),tangent=route.getTangentAt(Math.min(.999,u));cat.position.copy(point);const motion=route.motionAt(u);jump=motion.jump?Math.sin(Math.PI*motion.t):0;jumpPhase=motion.t;   const heading=Math.atan2(-tangent.z,tangent.x),error=Math.atan2(Math.sin(heading-cat.rotation.y),Math.cos(heading-cat.rotation.y));
    cat.rotation.y+=error*(1-Math.exp(-12*dt));turn=THREE.MathUtils.clamp((cat.rotation.y-lastHeading)/Math.max(.001,dt),-2,2);lastHeading=cat.rotation.y;
-   phase+=travel/.62; if(progress>=1){cat.position.copy(route.getPointAt(1));speed=0;state='settle';stateTime=0;}
+   phase+=travel/.62; if(progress>=1){cat.position.copy(route.getPointAt(1));cat.position.userRouteIndex=route.endIndex;speed=0;state='settle';stateTime=0;}
   }
   if(state==='settle'){stand=1-THREE.MathUtils.smoothstep(stateTime,0,.7);if(stateTime>=.7){stand=0;state='rest';stateTime=0;}}
   const moving=state==='run',bounce=jump>0?-.055*Math.sin(jumpPhase*Math.PI*2):(moving&&!reduced?.018*Math.cos(phase*Math.PI*4):0);
