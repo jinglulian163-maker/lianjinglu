@@ -108,6 +108,16 @@ async function startRoom() {
   removeLampPlants(room);
   const bedParts = await prepareBed(room);
   const cat = prepareCat(room);
+  const catObject = room.getObjectByName('Cream kitten');
+  const catWords = ['摸一下可以，两下要加罐头。','本喵正在上班，工作内容是躺着。','你刚刚点到我的可爱了。','今天的烦恼，放这里，我压住了。','刚才跑那两步，消耗了三个罐头。'];
+  const catBubble=document.createElement('div');catBubble.className='cat-bubble';catBubble.hidden=true;catBubble.setAttribute('role','status');area.append(catBubble);
+  let catBubbleUntil=0,lastCatWord=-1;
+  function talkToCat(){
+    const y=catObject.position.y,x=catObject.position.x,z=catObject.position.z;
+    const place=y>1.4?'正在监视一只很可疑的鸟。':y>.8?(x>0?'站得高，欠的罐头看得清。':'烤鱼女士禁止睡觉，本喵除外。'):z>1.3?'这块地毯已被我征用了。':null;
+    const next=place||catWords[(lastCatWord+1+Math.floor(Math.random()*(catWords.length-1)))%catWords.length];
+    lastCatWord=catWords.indexOf(next);catBubble.textContent=next;catBubble.hidden=false;catBubbleUntil=performance.now()+3400;
+  }
   const envelope = prepareLittleThings(room);
   prepareWardrobeClothes(room);
   room.traverse(object => {
@@ -215,7 +225,7 @@ async function startRoom() {
       else if(!action) returnView();
       else if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
       else if(action==='wardrobeAlbum') window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:'wardrobe'}));
-      else if (action === 'cat') cat.tap();
+      else if (action === 'cat') {talkToCat();cat.tap();}
       else if (action === 'bed') bed.toggle();
       else if (action === 'pillow') little.tap();
       else if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
@@ -252,6 +262,10 @@ async function startRoom() {
     }
     wardrobe.update(delta,reduced);
     little.update(delta,reduced); bed.update(delta,reduced); cat.update(delta,reduced);
+    if(!catBubble.hidden){
+      if(performance.now()>catBubbleUntil)catBubble.hidden=true;
+      else {const anchor=catObject.localToWorld(new THREE.Vector3(0,1.05,0)).project(camera),rect=area.getBoundingClientRect();catBubble.style.left=`${Math.max(115,Math.min(rect.width-115,(anchor.x+1)*rect.width/2))}px`;catBubble.style.top=`${Math.max(50,Math.min(rect.height-50,(1-anchor.y)*rect.height/2))}px`;}
+    }
     turntable.update(delta,reduced);
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
     const aperture = curtains.lightOpening;
