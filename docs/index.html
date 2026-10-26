@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#302943" />
+  <meta name="description" content="Soft Hours，一间收藏友谊回忆的互动小房间。旋转房间，打开物品，慢慢找回那些时光。" />
+  <title>Soft Hours · 我们的回忆小屋</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" /><link rel="stylesheet" href="./board.css" /><link rel="stylesheet" href="./photos.css" /><link rel="stylesheet" href="./glass.css" />
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+  <script type="module" src="./scene.js"></script>
+  <script type="module" src="./script.js"></script>
+<link rel="stylesheet" href="./records.css">
+<link rel="stylesheet" href="./little-things.css">
+<link rel="stylesheet" href="./snowglobe.css"><link rel="stylesheet" href="./hand-cursor.css"><script type="module" src="./hand-cursor.js"></script></head>
+<body>
+  <main class="page">
+    <section class="room-section" id="roomSection" aria-label="Soft Hours 三维回忆小屋">
+      <div class="room-sticky">
+        <div class="backdrop-glow" aria-hidden="true"></div>
+        <header class="topbar">
+          <span class="topbar__mark" aria-label="J and K">J<span>&amp;</span>K</span>
+          <span class="topbar__caption">一间收藏我们回忆的小屋</span>
+          <button id="resetView" class="topbar__reset" type="button">回到原位 <span aria-hidden="true">↗</span></button>
+        </header>
+
+        <button id="globeButton" class="globe-entry" type="button" disabled><span aria-hidden="true">✧</span>小小宇宙</button><div id="heroCopy" class="hero-copy">
+          <p class="eyebrow">A LITTLE PLACE TO KEEP US CLOSE</p>
+          <h1>Soft Hours</h1>
+          <p class="hero-copy__sub">有些时光，适合住进一间小屋里。</p>
+        </div>
+
+        <div class="scene-area" id="sceneArea">
+          <canvas id="roomCanvas" tabindex="0" aria-label="三维房间：拖动旋转，滚轮或双指缩放；键盘方向键旋转，加减键缩放，0 恢复视角，C 开合窗帘"></canvas>
+          <div id="nightDim" class="night-dim" aria-hidden="true"></div>
+          <div class="scene-loader" id="sceneLoader" role="status">正在打开小屋…</div>
+          <div class="hover-label" id="hoverLabel" hidden></div>
+        </div>
+
+        <p id="bedStatus" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);"></p><nav class="scene-actions" aria-label="回忆物品快捷入口">
+          <button type="button" data-action="wardrobe">衣柜</button>
+          <button type="button" data-action="record">唱片</button>
+          <button type="button" data-action="lamp">台灯</button>
+          <button type="button" data-action="board">公告板</button>
+          
+        </nav>
+        <div class="zoom-controls" aria-label="模型缩放"><button id="zoomOut" type="button" aria-label="缩小模型">−</button><output id="zoomLevel" aria-live="polite">100%</output><button id="zoomIn" type="button" aria-label="放大模型">+</button></div>
+        <div class="scene-guide" id="sceneGuide"><span class="guide-symbol">↔</span> 拖动旋转 · 滚轮 / 双指缩放 · 点击物品 · 拖窗帘开合</div>
+        <div class="scene-foot"><span>SOFT HOURS / 01</span><span>一间慢慢装满回忆的房间</span><span id="timeLabel">GOLDEN HOUR</span></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-shell" id="modalShell" hidden>
+    <div class="modal-scrim" data-close="true"></div>
+    <section class="memory-panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+      <button class="memory-panel__close" type="button" id="closePanel" aria-label="关闭弹窗"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5 5L19 19M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+      <div class="memory-panel__scroll">
+      <span class="memory-panel__number" id="panelNumber"></span>
+      <h2 id="panelTitle"></h2>
+      <p class="memory-panel__intro" id="panelIntro"></p>
+      <div id="panelBody"></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
