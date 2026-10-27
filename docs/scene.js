@@ -167,6 +167,20 @@ async function startRoom() {
     };
     materials.push(object.material); meshes.push(object);
   });
+  // The mural belongs to the outside of the back wall, so it follows the room
+  // when visitors rotate it without covering the noticeboard on the inside.
+  const muralTexture = await new THREE.TextureLoader().loadAsync('./assets/wall-mural.webp');
+  muralTexture.colorSpace = THREE.SRGBColorSpace;
+  const muralMaterial = new THREE.MeshBasicMaterial({
+    map: muralTexture, transparent: true, opacity: .88,
+    side: THREE.FrontSide, depthWrite: false, toneMapped: false
+  });
+  const muralDayColor = new THREE.Color(0xffffff), muralNightColor = new THREE.Color(0x52617e);
+  const mural = new THREE.Mesh(new THREE.PlaneGeometry(10.65, 3.85), muralMaterial);
+  mural.rotation.y = Math.PI;
+  mural.position.set(0, 2.08, -4.43);
+  mural.renderOrder = 1;
+  room.add(mural);
   scene.add(room);
   const bed = installBed(bedParts);
   const little = installLittleThings(room,envelope);
@@ -285,6 +299,7 @@ async function startRoom() {
     }
     turntable.update(delta,reduced);
     nightUniform.value = reduced ? nightTarget : THREE.MathUtils.damp(nightUniform.value,nightTarget,5,delta);
+    muralMaterial.color.lerpColors(muralDayColor,muralNightColor,nightUniform.value);
     const aperture = curtains.lightOpening;
     curtainOpening.value.x = reduced ? aperture[0] : THREE.MathUtils.damp(curtainOpening.value.x,aperture[0],14,delta);
     curtainOpening.value.y = reduced ? aperture[1] : THREE.MathUtils.damp(curtainOpening.value.y,aperture[1],14,delta);
