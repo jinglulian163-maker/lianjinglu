@@ -109,14 +109,31 @@ async function startRoom() {
   const bedParts = await prepareBed(room);
   const cat = prepareCat(room);
   const catObject = room.getObjectByName('Cream kitten');
-  const catWords = ['摸一下可以，两下要加罐头。','本喵正在上班，工作内容是躺着。','你刚刚点到我的可爱了。','今天的烦恼，放这里，我压住了。','刚才跑那两步，消耗了三个罐头。'];
+  const catWords = [
+    '摸一下可以，两下要加罐头。','本喵正在上班，工作内容是躺着。','你刚刚点到我的可爱了。',
+    '今天的烦恼，放这里，我压住了。','刚才跑那两步，消耗了三个罐头。','我没有偷懒，我在保存体力。',
+    '你负责想念，我负责打盹。','别急，我的尾巴还没想好去哪。','这个房间有点小，刚好装下我的威风。',
+    '听见了吗？那是罐头在呼唤我。','如果找不到我，就看看最舒服的地方。','今天也允许你摸摸我的头。',
+    '我只是路过，顺便接受一下夸奖。','刚刚的飞奔，是给你看的表演。','你坐一会儿，我替你巡视小屋。',
+    '小声一点，我正在和阳光聊天。','本喵的日程：巡逻、发呆、再巡逻。','你笑一下，我就假装没看见。',
+    '不是我在等你，是这个房间在等你。','这个角落不错，暂时归我了。','今晚的月亮，闻起来像小鱼干。',
+    '我宣布：现在是休息时间。','你来了？那我就再待一会儿。','喵。翻译一下：欢迎回来。'
+  ];
+  const catPlaceWords = {
+    window:['正在监视一只很可疑的鸟。','窗外的云，今天走得比我还慢。','嘘，我快和那只鸟成为朋友了。'],
+    high:['站得高，欠的罐头看得清。','这里视野不错，适合指挥全屋。','先别抱我，我还没巡视完。'],
+    bed:['烤鱼女士禁止睡觉，本喵除外。','枕头已经被我预订了。','床铺检查完毕：适合打盹。'],
+    rug:['这块地毯已被我征用了。','我和地毯的花纹，谁更可爱？','这里软软的，适合突然停下来。']
+  };
   const catBubble=document.createElement('div');catBubble.className='cat-bubble';catBubble.hidden=true;catBubble.setAttribute('role','status');area.append(catBubble);
-  let catBubbleUntil=0,lastCatWord=-1;
+  let catBubbleUntil=0,lastCatWord='';
   function talkToCat(){
     const y=catObject.position.y,x=catObject.position.x,z=catObject.position.z;
-    const place=y>1.4?'正在监视一只很可疑的鸟。':y>.8?(x>0?'站得高，欠的罐头看得清。':'烤鱼女士禁止睡觉，本喵除外。'):z>1.3?'这块地毯已被我征用了。':null;
-    const next=place||catWords[(lastCatWord+1+Math.floor(Math.random()*(catWords.length-1)))%catWords.length];
-    lastCatWord=catWords.indexOf(next);catBubble.textContent=next;catBubble.hidden=false;catBubbleUntil=performance.now()+3400;
+    const place=y>1.4?'window':y>.8?(x>0?'high':'bed'):z>1.3?'rug':null;
+    const words=place?catPlaceWords[place]:catWords;
+    const choices=words.filter(word=>word!==lastCatWord);
+    const next=choices[Math.floor(Math.random()*choices.length)];
+    lastCatWord=next;catBubble.textContent=next;catBubble.hidden=false;catBubbleUntil=performance.now()+3400;
   }
   const envelope = prepareLittleThings(room);
   prepareWardrobeClothes(room);
