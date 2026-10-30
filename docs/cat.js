@@ -67,5 +67,5 @@ export function prepareCat(room){
   tailRoot.scale.setScalar(Math.max(.001,stand));tailRoot.position.set(-.53,.56+bounce,0);
   tailBones.forEach((b,i)=>{b.rotation.z=-.10-i*.025;b.rotation.y=(moving&&!reduced?Math.sin(phase*Math.PI*2-i*.4)*.09:0)+turn*.07;});
  }
- return {tap,update};
+ return {tap,update,stop(){state='rest';stateTime=0;stand=0;route=null;}};
 }
