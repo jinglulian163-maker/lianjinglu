@@ -30,10 +30,13 @@ export function prepareCat(room){
  const tailRoot=new THREE.Group();cat.add(tailRoot);let parent=tailRoot;const tailBones=[];
  for(let i=0;i<7;i++){const b=new THREE.Group();if(i)b.position.x=-.115;parent.add(b);ball(b,[-.057,0,0],[.09,.065-i*.004,.065-i*.004],'#bfb2c2');tailBones.push(b);parent=b;}
  function segment(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b);mesh.quaternion.setFromUnitVectors(axis,b.clone().sub(a).normalize());}
+ let held=false,falling=false,fallVelocity=0,landingY=.035;
  let time=0,phase=0,state='rest',stateTime=0,stand=0,speed=0,distance=0,route=null,length=0,serial=Math.floor(Math.random()*10000),lastHeading=cat.rotation.y;
  function tap(){if(state!=='rest')return;route=makeCatRoute(cat.position,++serial);length=route.getLength();distance=0;state='rise';stateTime=0;}
  function update(dt,reduced){
   dt=Math.min(dt,.05);time+=dt;stateTime+=dt;
+  if(falling){fallVelocity+=9.8*dt;cat.position.y-=fallVelocity*dt;if(cat.position.y<=landingY){cat.position.y=landingY;falling=false;state='settle';stateTime=0;}}
+  if(held||falling)stand=1;
   if(state==='rise'){stand=THREE.MathUtils.smoothstep(stateTime,0,.55);if(stateTime>=.55){stand=1;state='run';stateTime=0;}}
   let turn=0,jump=0,jumpPhase=0;
   if(state==='run'){
@@ -58,7 +61,8 @@ export function prepareCat(room){
    const stride=moving&&jump<.1?.18:0,offset=stance?THREE.MathUtils.lerp(stride,-stride,cycle/.58):THREE.MathUtils.lerp(-stride,stride,(cycle-.58)/.42);
    const lift=jump>0?jump*.18:(moving&&!stance?Math.sin((cycle-.58)/.42*Math.PI)*.13:0);
    const x=leg.front?.31:-.37,z=leg.side*.205;
-   const hip=new THREE.Vector3(x,.49+bounce,z),foot=new THREE.Vector3(x+offset,.058+lift,z);
+   const dangling=held||falling;
+   const hip=new THREE.Vector3(x,.49+bounce,z),foot=new THREE.Vector3(x+(dangling?.035:offset),dangling?-.04:.058+lift,z);
    const mid=hip.clone().add(foot).multiplyScalar(.5),v=foot.clone().sub(hip),len=v.length();
    // Bend elbows and hocks in opposite directions while retaining limb length.
    const bend=Math.sqrt(Math.max(.002,.285*.285-len*len/4));mid.x+=(leg.front?-1:1)*bend;
@@ -67,5 +71,5 @@ export function prepareCat(room){
   tailRoot.scale.setScalar(Math.max(.001,stand));tailRoot.position.set(-.53,.56+bounce,0);
   tailBones.forEach((b,i)=>{b.rotation.z=-.10-i*.025;b.rotation.y=(moving&&!reduced?Math.sin(phase*Math.PI*2-i*.4)*.09:0)+turn*.07;});
  }
- return {tap,update,stop(){state='rest';stateTime=0;stand=0;route=null;}};
+ return {tap,update,lift(){held=true;falling=false;state='held';stand=1;route=null;},drop(y){held=false;falling=true;landingY=y;fallVelocity=0;state='fall';},stop(){held=false;falling=false;state='rest';stateTime=0;stand=0;route=null;}};
 }

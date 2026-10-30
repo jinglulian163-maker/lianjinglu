@@ -232,17 +232,24 @@ async function startRoom() {
   function dragPoint(e){const r=canvas.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.ray.intersectPlane(catPlane,new THREE.Vector3());}
   canvas.addEventListener('pointerdown',e=>{
     if(catDrag||e.button!==0||hitAt(e.clientX,e.clientY)!=='cat')return;
-    const world=catObject.getWorldPosition(new THREE.Vector3());catPlane.constant=-world.y;const p=dragPoint(e);if(!p)return;
+    const world=catObject.getWorldPosition(new THREE.Vector3());catPlane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()),world);const p=dragPoint(e);if(!p)return;
     cat.stop();catBubble.hidden=true;hoverLabel.hidden=true;
     catDrag={id:e.pointerId,x:e.clientX,y:e.clientY,offset:world.sub(p),enabled:controls.enabled,moved:false};controls.enabled=false;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';e.preventDefault();e.stopImmediatePropagation();
   },true);
   canvas.addEventListener('pointermove',e=>{
     if(!catDrag||catDrag.id!==e.pointerId)return;
     if(Math.hypot(e.clientX-catDrag.x,e.clientY-catDrag.y)>6)catDrag.moved=true;
-    if(catDrag.moved){const p=dragPoint(e);if(p){const local=room.worldToLocal(p.add(catDrag.offset));local.x=THREE.MathUtils.clamp(local.x,-4.2,4.2);local.z=THREE.MathUtils.clamp(local.z,-3.5,3.5);catObject.position.copy(local);}}
+    if(catDrag.moved){cat.lift();const p=dragPoint(e);if(p){const local=room.worldToLocal(p.add(catDrag.offset));local.x=THREE.MathUtils.clamp(local.x,-4.2,4.2);local.z=THREE.MathUtils.clamp(local.z,-3.5,3.5);local.y=THREE.MathUtils.clamp(local.y,.035,5);catObject.position.copy(local);}}
     e.preventDefault();e.stopImmediatePropagation();
   },true);
-  function endCatDrag(e){if(!catDrag||catDrag.id!==e.pointerId)return;const d=catDrag;catDrag=null;controls.enabled=d.enabled;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);canvas.style.cursor='grab';if(e.type==='pointerup'&&!d.moved){talkToCat();cat.tap();}e.preventDefault();e.stopImmediatePropagation();}
+  function endCatDrag(e){if(!catDrag||catDrag.id!==e.pointerId)return;const d=catDrag;catDrag=null;controls.enabled=d.enabled;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);canvas.style.cursor='grab';if(d.moved){
+      room.updateMatrixWorld(true);
+      const origin=catObject.getWorldPosition(new THREE.Vector3());
+      const downRay=new THREE.Raycaster(origin,new THREE.Vector3(0,-1,0));
+      const surfaces=[];room.traverse(o=>{if(o.isMesh&&o.visible&&!catObject.getObjectById(o.id))surfaces.push(o);});
+      const hit=downRay.intersectObjects(surfaces,false).find(h=>h.face&&h.face.normal.clone().transformDirection(h.object.matrixWorld).y>.65);
+      const y=hit?room.worldToLocal(hit.point.clone()).y+.035:.035;cat.drop(Math.min(catObject.position.y,y));
+    }else if(e.type==='pointerup'){talkToCat();cat.tap();}e.preventDefault();e.stopImmediatePropagation();}
   for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,endCatDrag,true);
   const fingers = new Set(); let down = null; let dragged = false;
   canvas.addEventListener('pointerdown', event => {
