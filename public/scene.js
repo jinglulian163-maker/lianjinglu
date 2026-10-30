@@ -1,3 +1,4 @@
+import {installOpenStorage} from './open-storage.js';
 import {prepareCat} from './cat.js';
 import {removeLampPlants} from './remove-lamp-plants.js';
 import {prepareBed,installBed} from './bed.js';
@@ -16,7 +17,7 @@ const area = document.getElementById('sceneArea');
 const loader = document.getElementById('sceneLoader');
 const hoverLabel = document.getElementById('hoverLabel');
 const zoomLevel = document.getElementById('zoomLevel');
-const labels = {cat: '小猫',wardrobeAlbum:'相册 · 翻看照片',bed:'床铺',pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
+const labels = {drawer0:'抽屉',drawer1:'抽屉',drawer2:'抽屉',drawer3:'抽屉',drawer4:'抽屉',drawer5:'抽屉',storageBox0:'收纳箱',storageBox1:'收纳箱',cat: '小猫',wardrobeAlbum:'相册 · 翻看照片',bed:'床铺',pillow:'抱枕 · 轻轻碰一下',letters:'信封 · 未来来信',presence:'J & K · 两杯热茶', wardrobeDoorLeft: '左柜门 · 点击开合', wardrobeDoorRight: '右柜门 · 点击开合', curtainLeft: '窗帘 · 左右拖动开合', curtainRight: '窗帘 · 左右拖动开合', wardrobe: '衣柜 · 翻看照片', record: '唱片机 · 听听我们的声音', lamp: '台灯 · 切换昼夜', board: '公告板 · 收藏回忆' };
 
 async function startRoom() {
   const scene = new THREE.Scene();
@@ -185,6 +186,8 @@ async function startRoom() {
   const bed = installBed(bedParts);
   const little = installLittleThings(room,envelope);
   window.dispatchEvent(new Event('soft-hours:things-ready'));
+  const storage=installOpenStorage(room);
+  room.traverse(o=>{if(o.isMesh&&!meshes.includes(o))meshes.push(o);});
   const wardrobe = installWardrobe(room);
   // Every album entry waits for physically open wardrobe doors.
   window.addEventListener('soft-hours:open',e=>{
@@ -289,6 +292,7 @@ async function startRoom() {
       else if(action==='wardrobeAlbum'&&!wardrobe.isOpen()) wardrobe.open();
       else if(action==='wardrobeAlbum') window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:'wardrobe'}));
       else if (action === 'cat') {talkToCat();cat.tap();}
+      else if(action?.startsWith('drawer')||action?.startsWith('storageBox'))storage.toggle(action);
       else if (action === 'bed') bed.toggle();
       else if (action === 'pillow') little.tap();
       else if (action === 'lamp') window.dispatchEvent(new Event('soft-hours:lamp'));
@@ -323,7 +327,7 @@ async function startRoom() {
       camera.position.lerpVectors(t.from.position,t.to.position,e);controls.target.lerpVectors(t.from.target,t.to.target,e);roomFocus.lerpVectors(t.from.focus,t.to.focus,e);camera.zoom=THREE.MathUtils.lerp(t.from.zoom,t.to.zoom,e);camera.lookAt(controls.target);zoomStatus();
       if(p===1){focusTween=null;controls.enabled=true;controls.update();}
     }
-    wardrobe.update(delta,reduced);
+    wardrobe.update(delta,reduced);storage.update(delta,reduced);
     little.update(delta,reduced); bed.update(delta,reduced); cat.update(delta,reduced);
     if(!catBubble.hidden){
       if(performance.now()>catBubbleUntil)catBubble.hidden=true;
