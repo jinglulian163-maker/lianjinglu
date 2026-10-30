@@ -98,7 +98,7 @@ async function startRoom() {
     }
   });
   const gltf = await new GLTFLoader().loadAsync('./assets/soft-hours-room.glb', event => {
-    loader.textContent = event.total ? `正在打开小屋… ${Math.round(event.loaded / event.total * 100)}%` : '正在打开小屋…';
+    loader.textContent = event.total ? `正在打开小屋… ${Math.min(100, Math.max(0, Math.round(event.loaded / event.total * 100)))}%` : '正在打开小屋…';
   });
   const room = gltf.scene; const meshes = []; const materials = [];
   room.scale.y = 1 / .92;
