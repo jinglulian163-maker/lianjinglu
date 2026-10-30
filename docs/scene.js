@@ -186,6 +186,12 @@ async function startRoom() {
   const little = installLittleThings(room,envelope);
   window.dispatchEvent(new Event('soft-hours:things-ready'));
   const wardrobe = installWardrobe(room);
+  // Every album entry waits for physically open wardrobe doors.
+  window.addEventListener('soft-hours:open',e=>{
+    if(e.detail==='wardrobe'&&!wardrobe.isOpen()){
+      e.stopImmediatePropagation();wardrobe.open();
+    }
+  },true);
   const turntable = installTurntable(room);
   window.addEventListener('soft-hours:record-playback',e=>turntable.setPlaying(e.detail.playing));
   window.addEventListener('soft-hours:record-anchor',e=>{room.updateMatrixWorld(true);const p=turntable.anchor.project(camera),r=canvas.getBoundingClientRect();e.detail.x=r.left+(p.x+1)*r.width/2;e.detail.y=r.top+(1-p.y)*r.height/2;});
@@ -279,6 +285,8 @@ async function startRoom() {
       else if(category(action)&&approach(category(action))) {}
       else if(!action) returnView();
       else if (action === 'wardrobeDoorLeft' || action === 'wardrobeDoorRight') wardrobe.toggle(action);
+      else if(action==='wardrobe'&&!wardrobe.isOpen()) wardrobe.open();
+      else if(action==='wardrobeAlbum'&&!wardrobe.isOpen()) wardrobe.open();
       else if(action==='wardrobeAlbum') window.dispatchEvent(new CustomEvent('soft-hours:open',{detail:'wardrobe'}));
       else if (action === 'cat') {talkToCat();cat.tap();}
       else if (action === 'bed') bed.toggle();
