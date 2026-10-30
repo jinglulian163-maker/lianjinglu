@@ -1,7 +1,7 @@
 let state=null,host=null,view=null,busy=false,timer=null,requesting=false,alive=true;
 const emit=(name,detail)=>window.dispatchEvent(new CustomEvent(name,{detail}));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(body){const r=await fetch('/api/little-things',{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'连接失败，请重试。');return d;}
+async function api(body){const r=await fetch('/api/little-things',{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,cache:'no-store'});if(!r.headers.get('content-type')?.includes('application/json'))throw Error('GitHub 版暂未接入此功能的云端服务。');const d=await r.json();if(!r.ok)throw Error(d.error||'连接失败，请重试。');return d;}
 export async function refreshThings(){state=await api();emit('soft-hours:presence',state);return state;}
 async function heartbeat(){if(document.hidden||!alive||requesting)return;requesting=true;try{await api({action:'heartbeat'});await refreshThings();}catch{emit('soft-hours:presence',null);}finally{requesting=false;}}
 setInterval(heartbeat,25000);heartbeat();document.addEventListener('visibilitychange',()=>{if(!document.hidden)heartbeat();});window.addEventListener('pagehide',()=>{alive=false;});window.addEventListener('pageshow',()=>{alive=true;heartbeat();});
