@@ -41,11 +41,16 @@ const panels = {
   pillow:{number:'06 / A LITTLE SECRET',title:'抱枕里的小纸条',intro:'轻轻碰三下，就会掉出一句悄悄话。'},
   wardrobe: { number: '01 / THE WARDROBE', title: '照片衣柜', intro: '拉开柜门，那些舍不得删掉的瞬间都在这里。' },
   record: { number: '02 / THE RECORD PLAYER', title: '挑一张，听听那一天', intro: '从唱片架抽出一段声音，放进我们的小小时光。' },
+  coffeeMachine: {number:'07 / THE LITTLE CAFÉ',title:'今天喝什么？',intro:'给小屋添一杯热乎乎的饮品。'},
   board: { number: '03 / THE MEMORY BOARD', title: '回忆公告板', intro: '有些日子值得被钉在墙上，偶尔抬头再看一眼。' }
 };
 function renderWardrobe() { mountPhotos(panelBody); }
 function renderRecord() { mountRecords(panelBody); }
 function renderBoard() { mountBoard(panelBody); }
+function renderCoffeeMachine(){
+  panelBody.innerHTML='<div class="drink-choices"><button type="button" data-drink="coffee"><span aria-hidden="true">☕</span><strong>做一杯咖啡</strong><small>香浓、暖暖的</small></button><button type="button" data-drink="milkTea"><span aria-hidden="true">🧋</span><strong>做一杯奶茶</strong><small>甜甜、慢慢喝</small></button></div>';
+  panelBody.querySelectorAll('[data-drink]').forEach(button=>button.addEventListener('click',()=>{window.dispatchEvent(new CustomEvent('soft-hours:brew',{detail:button.dataset.drink}));closePanel();}));
+}
 function openPanel(name) {
   const data = panels[name]; if (!data) return;
   unmountBoard(); unmountPhotos(); unmountRecords(); unmountThings();
@@ -59,6 +64,7 @@ function openPanel(name) {
   if (name === 'wardrobe') renderWardrobe();
   if (name === 'record') renderRecord();
   if (name === 'board') renderBoard();
+  if (name === 'coffeeMachine') renderCoffeeMachine();
   if (['letters','presence','pillow'].includes(name)) mountThings(panelBody,name);
   modalShell.hidden = false; document.body.style.overflow = 'hidden';
   modalShell.querySelector('.memory-panel__scroll').scrollTop = 0;
