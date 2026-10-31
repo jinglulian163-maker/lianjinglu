@@ -34,8 +34,9 @@ export function prepareCat(room){
  let time=0,phase=0,state='rest',stateTime=0,stand=0,speed=0,distance=0,route=null,length=0,serial=Math.floor(Math.random()*10000),lastHeading=cat.rotation.y;
  function tap(){if(state!=='rest')return;route=makeCatRoute(cat.position,++serial);length=route.getLength();distance=0;state='rise';stateTime=0;}
  function update(dt,reduced){
+  let landed=false;
   dt=Math.min(dt,.05);time+=dt;stateTime+=dt;
-  if(falling){fallVelocity+=9.8*dt;cat.position.y-=fallVelocity*dt;if(cat.position.y<=landingY){cat.position.y=landingY;falling=false;state='settle';stateTime=0;}}
+  if(falling){fallVelocity+=9.8*dt;cat.position.y-=fallVelocity*dt;if(cat.position.y<=landingY){cat.position.y=landingY;falling=false;landed=true;state='settle';stateTime=0;}}
   if(held||falling)stand=1;
   if(state==='rise'){stand=THREE.MathUtils.smoothstep(stateTime,0,.55);if(stateTime>=.55){stand=1;state='run';stateTime=0;}}
   let turn=0,jump=0,jumpPhase=0;
@@ -70,6 +71,7 @@ export function prepareCat(room){
   }
   tailRoot.scale.setScalar(Math.max(.001,stand));tailRoot.position.set(-.53,.56+bounce,0);
   tailBones.forEach((b,i)=>{b.rotation.z=-.10-i*.025;b.rotation.y=(moving&&!reduced?Math.sin(phase*Math.PI*2-i*.4)*.09:0)+turn*.07;});
+  return landed;
  }
  return {tap,update,lift(){held=true;falling=false;state='held';stand=1;route=null;},drop(y){held=false;falling=true;landingY=y;fallVelocity=0;state='fall';},stop(){held=false;falling=false;state='rest';stateTime=0;stand=0;route=null;}};
 }

@@ -126,6 +126,7 @@ async function startRoom() {
     bed:['烤鱼女士禁止睡觉，本喵除外。','枕头已经被我预订了。','床铺检查完毕：适合打盹。'],
     rug:['这块地毯已被我征用了。','我和地毯的花纹，谁更可爱？','这里软软的，适合突然停下来。']
   };
+  const catLandingWords=['喵！我刚刚飞起来了吗？','落地成功，罐头奖励在哪里？','这次着陆，我给自己满分。','人类，下次起飞记得先通知我。','呼，四只爪爪都还在。','我不是掉下来，是优雅地降落。','刚才那一下，算你陪我玩。','本喵宣布：地板也挺舒服。'];
   const catBubble=document.createElement('div');catBubble.className='cat-bubble';catBubble.hidden=true;catBubble.setAttribute('role','status');area.append(catBubble);
   let catBubbleUntil=0,lastCatWord='';
   function talkToCat(){
@@ -136,6 +137,7 @@ async function startRoom() {
     const next=choices[Math.floor(Math.random()*choices.length)];
     lastCatWord=next;catBubble.textContent=next;catBubble.hidden=false;catBubbleUntil=performance.now()+3400;
   }
+  function talkAfterLanding(){const choices=catLandingWords.filter(word=>word!==lastCatWord),next=choices[Math.floor(Math.random()*choices.length)];lastCatWord=next;catBubble.textContent=next;catBubble.hidden=false;catBubbleUntil=performance.now()+3400;}
   const envelope = prepareLittleThings(room);
   prepareWardrobeClothes(room);
   room.traverse(object => {
@@ -328,7 +330,7 @@ async function startRoom() {
       if(p===1){focusTween=null;controls.enabled=true;controls.update();}
     }
     wardrobe.update(delta,reduced);storage.update(delta,reduced);
-    little.update(delta,reduced); bed.update(delta,reduced); cat.update(delta,reduced);
+    little.update(delta,reduced); bed.update(delta,reduced); if(cat.update(delta,reduced))talkAfterLanding();
     if(!catBubble.hidden){
       if(performance.now()>catBubbleUntil)catBubble.hidden=true;
       else {const anchor=catObject.localToWorld(new THREE.Vector3(0,1.05,0)).project(camera),rect=area.getBoundingClientRect();catBubble.style.left=`${Math.max(115,Math.min(rect.width-115,(anchor.x+1)*rect.width/2))}px`;catBubble.style.top=`${Math.max(50,Math.min(rect.height-50,(1-anchor.y)*rect.height/2))}px`;}
