@@ -205,7 +205,7 @@ async function startRoom() {
   function nightMode(night) { nightTarget = night ? 1 : 0; }
   nightMode(document.body.classList.contains('is-night'));
   window.addEventListener('soft-hours:night', event => nightMode(event.detail));
-  function category(action){return action?.startsWith('drawer')||action?.startsWith('storageBox')?action:action?.startsWith('wardrobe')?'wardrobe':action==='record'?'record':action==='letters'?'letters':null;}
+  function category(action){return action?.startsWith('drawer')?'drawers':action?.startsWith('storageBox')?'storageBoxes':action?.startsWith('wardrobe')?'wardrobe':action==='record'?'record':action==='letters'?'letters':null;}
   function moveView(to){
     controls.enableDamping=false; controls.update(); controls.enableDamping=true;
     focusTween={time:0,from:{position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom},to};
@@ -217,9 +217,9 @@ async function startRoom() {
     if(!savedView)savedView={position:camera.position.clone(),target:controls.target.clone(),focus:roomFocus.clone(),zoom:camera.zoom};
     focusedItem=name; controls.maxZoom=3.5;
     room.updateMatrixWorld(true);
-    const center=name==='letters'?envelope.getWorldPosition(new THREE.Vector3()):name==='wardrobe'?new THREE.Vector3(3.9,1.72,-3.1):name.startsWith('storageBox')?new THREE.Vector3(name.endsWith('1')?4.44:3.34,3.55,-3.45):name.startsWith('drawer')?new THREE.Vector3(.01+(Number(name.slice(6))%3)*.75,.65+Math.floor(Number(name.slice(6))/3)*.41,-2.75):new THREE.Vector3(-.65,1.3,-3.15);
+    const center=name==='letters'?envelope.getWorldPosition(new THREE.Vector3()):name==='wardrobe'?new THREE.Vector3(3.9,1.72,-3.1):name==='storageBoxes'?new THREE.Vector3(3.9,3.55,-3.45):name==='drawers'?new THREE.Vector3(.76,.85,-2.75):new THREE.Vector3(-.65,1.3,-3.15);
     const aim=new THREE.Vector3(center.x,8.5,center.z);
-    moveView({position:aim.clone().add(new THREE.Vector3(7,0,24.65)),target:aim,focus:center,zoom:name==='letters'?3.5:name.startsWith('drawer')||name.startsWith('storageBox')?Math.min(3.5,camera.aspect<.8?3.3:3.1):Math.min(3.5,Math.max(2.3,camera.aspect<.8?3.3:2.7))});
+    moveView({position:aim.clone().add(new THREE.Vector3(7,0,24.65)),target:aim,focus:center,zoom:name==='letters'?3.5:name==='drawers'||name==='storageBoxes'?Math.min(3.5,camera.aspect<.8?3.3:3.1):Math.min(3.5,Math.max(2.3,camera.aspect<.8?3.3:2.7))});
     return true;
   }
   function returnView(){if(!savedView||focusTween)return;const view=savedView;savedView=null;focusedItem=null;controls.maxZoom=2.3;moveView(view);}
