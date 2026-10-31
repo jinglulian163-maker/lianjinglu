@@ -32,6 +32,8 @@ export function installOpenStorage(room){
   box(body,.008,.31,.63,cx-.416,cy+.205,cz,inside);box(body,.008,.31,.63,cx+.416,cy+.205,cz,inside);
   body.traverse(o=>{if(o.isMesh)o.userData.action=action;});parts.push({pivot,action,open:false,kind:'lid'});
  }
+ // Remove the small decorative purple block in front of the drawers.
+ for(const id of g.index.array)if(id>=159879&&id<=160070)removed.add(id);
  const keep=[];for(let i=0;i<g.index.count;i+=3)if(!removed.has(g.index.array[i]))keep.push(g.index.array[i],g.index.array[i+1],g.index.array[i+2]);g.setIndex(keep);
  return {toggle(action){const p=parts.find(p=>p.action===action);if(p)p.open=!p.open;},setNight(amount){for(const c of colored)c.material.color.lerpColors(c.day,c.night,amount);},update(dt,reduced){for(const p of parts){const target=p.open?(p.kind==='drawer'?.66:-1.65):0;if(p.kind==='drawer')p.pivot.position.z=reduced?target:THREE.MathUtils.damp(p.pivot.position.z,target,9,dt);else p.pivot.rotation.x=reduced?target:THREE.MathUtils.damp(p.pivot.rotation.x,target,9,dt);}}};
 }
