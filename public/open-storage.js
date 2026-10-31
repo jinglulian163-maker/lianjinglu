@@ -8,10 +8,10 @@ export function installOpenStorage(room){
   // when Three.js recompiles the shared room shader after geometry changes.
   const material=source.material.clone();
   const mesh=new THREE.Mesh(geo,material);mesh.userData.action=action;pivot.add(mesh);
-  colored.push({material,day:material.color.clone(),night:material.color.clone().multiply(new THREE.Color('#46516e'))});
+  colored.push({material,day:material.color.clone(),night:material.color.clone().multiply(new THREE.Color(action==='storageBox0'?'#aab4cc':'#46516e'))});
   return mesh;
  }
- function box(parent,w,h,d,x,y,z,color){const material=new THREE.MeshBasicMaterial({color}),m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);colored.push({material,day:new THREE.Color(color),night:new THREE.Color(color).multiply(new THREE.Color('#46516e'))});return m;}
+ function box(parent,w,h,d,x,y,z,color,nightTint='#46516e'){const material=new THREE.MeshBasicMaterial({color}),m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);colored.push({material,day:new THREE.Color(color),night:new THREE.Color(color).multiply(new THREE.Color(nightTint))});return m;}
  for(let i=0;i<6;i++){
   const action='drawer'+i,pivot=new THREE.Group();room.add(pivot);extract(158619+i*210,158828+i*210,action,pivot);
   const x=.01+(i%3)*.75,y=.24+Math.floor(i/3)*.41;
@@ -22,14 +22,14 @@ export function installOpenStorage(room){
   const lid=extract(i?166591:166303,i?166686:166398,action,pivot);lid.geometry.translate(-x,-y,-z);pivot.position.set(x,y,z);
   // Remove the solid body and replace it with an open container.
   const a=i?166495:166207,b=i?166590:166302;for(const id of g.index.array)if(id>=a&&id<=b)removed.add(id);
-  const body=new THREE.Group();room.add(body);const color=i?'#ddc8cd':'#b08b56',cy=3.19,cx=i?4.44:3.34,cz=i?-3.41:-3.48;
-  const inside=i?'#927b94':'#765d65';
-  box(body,.92,.035,.72,cx,cy,cz,inside);
-  box(body,.035,.37,.72,cx-.44,cy+.20,cz,color);box(body,.035,.37,.72,cx+.44,cy+.20,cz,color);
-  box(body,.92,.37,.035,cx,cy+.20,cz-.34,color);box(body,.92,.37,.035,cx,cy+.20,cz+.34,color);
+  const body=new THREE.Group();room.add(body);const color=i?'#ddc8cd':'#cbb99e',cy=3.19,cx=i?4.44:3.34,cz=i?-3.41:-3.48;
+  const inside=i?'#927b94':'#a99a8d',tint=i?'#46516e':'#929eb8';
+  box(body,.92,.035,.72,cx,cy,cz,inside,tint);
+  box(body,.035,.37,.72,cx-.44,cy+.20,cz,color,tint);box(body,.035,.37,.72,cx+.44,cy+.20,cz,color,tint);
+  box(body,.92,.37,.035,cx,cy+.20,cz-.34,color,tint);box(body,.92,.37,.035,cx,cy+.20,cz+.34,color,tint);
   // The darker inner panels make the open top read as a hollow container.
-  box(body,.85,.31,.008,cx,cy+.205,cz-.318,inside);box(body,.85,.31,.008,cx,cy+.205,cz+.318,inside);
-  box(body,.008,.31,.63,cx-.416,cy+.205,cz,inside);box(body,.008,.31,.63,cx+.416,cy+.205,cz,inside);
+  box(body,.85,.31,.008,cx,cy+.205,cz-.318,inside,tint);box(body,.85,.31,.008,cx,cy+.205,cz+.318,inside,tint);
+  box(body,.008,.31,.63,cx-.416,cy+.205,cz,inside,tint);box(body,.008,.31,.63,cx+.416,cy+.205,cz,inside,tint);
   body.traverse(o=>{if(o.isMesh)o.userData.action=action;});parts.push({pivot,action,open:false,kind:'lid'});
  }
  // Remove the small decorative purple block in front of the drawers.
