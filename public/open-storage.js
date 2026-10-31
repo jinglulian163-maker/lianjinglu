@@ -20,6 +20,11 @@ export function installOpenStorage(room){
  for(let i=0;i<2;i++){
   const action='storageBox'+i,pivot=new THREE.Group(),x=i?4.44:3.34,y=i?3.55:3.58,z=i?-3.82:-3.87;room.add(pivot);
   const lid=extract(i?166591:166303,i?166686:166398,action,pivot);lid.geometry.translate(-x,-y,-z);pivot.position.set(x,y,z);
+  if(i===0){
+   // Keep the original lid shape, but replace its dark painted vertex colors.
+   const colors=lid.geometry.getAttribute('COLOR_0')||lid.geometry.getAttribute('color');
+   if(colors){const lighter=new THREE.Color('#d4c5ad');for(let v=0;v<colors.count;v++)colors.setXYZ(v,lighter.r,lighter.g,lighter.b);colors.needsUpdate=true;}
+  }
   // Remove the solid body and replace it with an open container.
   const a=i?166495:166207,b=i?166590:166302;for(const id of g.index.array)if(id>=a&&id<=b)removed.add(id);
   const body=new THREE.Group();room.add(body);const color=i?'#ddc8cd':'#cbb99e',cy=3.19,cx=i?4.44:3.34,cz=i?-3.41:-3.48;
