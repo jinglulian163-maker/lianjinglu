@@ -16,8 +16,8 @@ export function installCoffeeMachine(room,meshes){
  block(.22,.045,.33,gold,cx-.28,2.10,cz-.05);
  piece(new THREE.CylinderGeometry(.064,.064,.15,16),wood,cx+.1,2.19,cz-.05);
  // A short horizontal arm brings the spout over the cup already on the cabinet.
- block(.53,.09,.12,cream,cx-.51,1.91,cz+.17);
- piece(new THREE.CylinderGeometry(.043,.035,.15,12),gold,cx-.77,1.80,cz+.17);
+ block(.79,.09,.12,cream,cx-.385,1.91,cz+.03);
+ piece(new THREE.CylinderGeometry(.043,.035,.15,12),gold,1.07,1.80,-3.40);
  piece(new THREE.CylinderGeometry(.055,.055,.018,16),gold,cx-.13,1.90,cz+.224).rotation.x=Math.PI/2;
  piece(new THREE.CylinderGeometry(.055,.055,.018,16),gold,cx+.13,1.90,cz+.224).rotation.x=Math.PI/2;
  piece(new THREE.CylinderGeometry(.026,.026,.02,12),wood,cx-.13,1.90,cz+.239).rotation.x=Math.PI/2;
@@ -25,9 +25,10 @@ export function installCoffeeMachine(room,meshes){
  block(.065,.31,.08,wood,cx+.385,1.78,cz+.04);
  piece(new THREE.SphereGeometry(.068,12,10),wood,cx+.385,1.98,cz+.04);
  // The existing right-hand cup stays in place; liquid appears inside it.
- const liquid=piece(new THREE.CylinderGeometry(.105,.105,.012,24),mat('#8b6048','#604764'),1.15,1.607,-3.42);
+ // The cup's handle extends rightward; the bowl itself is centered at x=1.07.
+ const liquid=piece(new THREE.CylinderGeometry(.115,.115,.012,24),mat('#8b6048','#604764'),1.07,1.555,-3.40);
  liquid.userData.action='coffeeMachine';liquid.visible=false;
- const stream=piece(new THREE.CylinderGeometry(.019,.013,.30,12),mat('#a47653','#9e8298'),1.07,1.66,-3.26);
+ const stream=piece(new THREE.CylinderGeometry(.019,.013,.24,12),mat('#a47653','#9e8298'),1.07,1.69,-3.40);
  stream.visible=false;
  let pourTime=0,drink='coffee';
  return {
