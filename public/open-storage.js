@@ -4,7 +4,8 @@ export function installOpenStorage(room){
  function extract(a,b,action,pivot){
   const ids=[];for(const id of g.index.array)if(id>=a&&id<=b){ids.push(id);removed.add(id);}
   const geo=new THREE.BufferGeometry();for(const [key,attr] of Object.entries(g.attributes)){const data=new attr.array.constructor(ids.length*attr.itemSize);ids.forEach((id,j)=>{for(let k=0;k<attr.itemSize;k++)data[j*attr.itemSize+k]=attr.array[id*attr.itemSize+k];});geo.setAttribute(key,new THREE.BufferAttribute(data,attr.itemSize,attr.normalized));}
-  const mesh=new THREE.Mesh(geo,source.material.clone());mesh.userData.action=action;pivot.add(mesh);return mesh;
+  // Reuse the room material: cloning it drops the custom night shader callback.
+  const mesh=new THREE.Mesh(geo,source.material);mesh.userData.action=action;pivot.add(mesh);return mesh;
  }
  function box(parent,w,h,d,x,y,z,color){const material=new THREE.MeshBasicMaterial({color}),m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);colored.push({material,day:new THREE.Color(color)});return m;}
  for(let i=0;i<6;i++){
