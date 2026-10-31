@@ -4,10 +4,14 @@ export function installOpenStorage(room){
  function extract(a,b,action,pivot){
   const ids=[];for(const id of g.index.array)if(id>=a&&id<=b){ids.push(id);removed.add(id);}
   const geo=new THREE.BufferGeometry();for(const [key,attr] of Object.entries(g.attributes)){const data=new attr.array.constructor(ids.length*attr.itemSize);ids.forEach((id,j)=>{for(let k=0;k<attr.itemSize;k++)data[j*attr.itemSize+k]=attr.array[id*attr.itemSize+k];});geo.setAttribute(key,new THREE.BufferAttribute(data,attr.itemSize,attr.normalized));}
-  // Reuse the room material: cloning it drops the custom night shader callback.
-  const mesh=new THREE.Mesh(geo,source.material);mesh.userData.action=action;pivot.add(mesh);return mesh;
+  // Movable pieces get their own tint, so their night color is reliable even
+  // when Three.js recompiles the shared room shader after geometry changes.
+  const material=source.material.clone();
+  const mesh=new THREE.Mesh(geo,material);mesh.userData.action=action;pivot.add(mesh);
+  colored.push({material,day:material.color.clone(),night:material.color.clone().multiply(new THREE.Color('#46516e'))});
+  return mesh;
  }
- function box(parent,w,h,d,x,y,z,color){const material=new THREE.MeshBasicMaterial({color}),m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);colored.push({material,day:new THREE.Color(color)});return m;}
+ function box(parent,w,h,d,x,y,z,color){const material=new THREE.MeshBasicMaterial({color}),m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);colored.push({material,day:new THREE.Color(color),night:new THREE.Color(color).multiply(new THREE.Color('#46516e'))});return m;}
  for(let i=0;i<6;i++){
   const action='drawer'+i,pivot=new THREE.Group();room.add(pivot);extract(158619+i*210,158828+i*210,action,pivot);
   const x=.01+(i%3)*.75,y=.24+Math.floor(i/3)*.41;
@@ -29,6 +33,5 @@ export function installOpenStorage(room){
   body.traverse(o=>{if(o.isMesh)o.userData.action=action;});parts.push({pivot,action,open:false,kind:'lid'});
  }
  const keep=[];for(let i=0;i<g.index.count;i+=3)if(!removed.has(g.index.array[i]))keep.push(g.index.array[i],g.index.array[i+1],g.index.array[i+2]);g.setIndex(keep);
- const nightTint=new THREE.Color('#66718c');
- return {toggle(action){const p=parts.find(p=>p.action===action);if(p)p.open=!p.open;},setNight(amount){for(const c of colored)c.material.color.copy(c.day).lerp(c.day.clone().multiply(nightTint),amount);},update(dt,reduced){for(const p of parts){const target=p.open?(p.kind==='drawer'?.66:-1.65):0;if(p.kind==='drawer')p.pivot.position.z=reduced?target:THREE.MathUtils.damp(p.pivot.position.z,target,9,dt);else p.pivot.rotation.x=reduced?target:THREE.MathUtils.damp(p.pivot.rotation.x,target,9,dt);}}};
+ return {toggle(action){const p=parts.find(p=>p.action===action);if(p)p.open=!p.open;},setNight(amount){for(const c of colored)c.material.color.lerpColors(c.day,c.night,amount);},update(dt,reduced){for(const p of parts){const target=p.open?(p.kind==='drawer'?.66:-1.65):0;if(p.kind==='drawer')p.pivot.position.z=reduced?target:THREE.MathUtils.damp(p.pivot.position.z,target,9,dt);else p.pivot.rotation.x=reduced?target:THREE.MathUtils.damp(p.pivot.rotation.x,target,9,dt);}}};
 }
